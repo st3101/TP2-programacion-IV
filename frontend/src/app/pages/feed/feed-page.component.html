@@ -1,0 +1,193 @@
+<div class="feed-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/feed" aria-label="Lobby, ir al inicio del feed">
+      <span class="brand-mark" aria-hidden="true"><span></span></span>
+      <span class="brand-name">lobby<span class="brand-period">.</span></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link nav-link--active" routerLink="/feed" aria-current="page">Feed</a>
+      <span class="nav-link nav-link--future" aria-disabled="true">Descubrir</span>
+      <span class="nav-link nav-link--future" aria-disabled="true">Juegos</span>
+      <span class="nav-link nav-link--future" aria-disabled="true">Comunidad</span>
+      <span class="nav-link nav-link--future" aria-disabled="true">Guardados</span>
+    </nav>
+
+    <div class="profile-chip" aria-label="Perfil de Nico Pereyra">
+      <span class="profile-avatar">NP</span>
+      <span class="profile-name">nicopixel</span>
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="m4 6 4 4 4-4" />
+      </svg>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="feed-heading" aria-labelledby="feed-title">
+      <div class="heading-copy">
+        <p class="eyebrow"><span class="live-dot"></span> EL LOBBY ESTÁ ABIERTO</p>
+        <h1 id="feed-title">Lo que está jugando<br /><span>la comunidad.</span></h1>
+        <p class="heading-note">Partidas, hallazgos y esas cosas que dan ganas de compartir.</p>
+      </div>
+      <div class="heading-aside" aria-label="Actividad del feed">
+        <span class="aside-number">04</span>
+        <span class="aside-label">PUBLICACIONES<br />EN EL FEED</span>
+      </div>
+    </section>
+
+    <section class="feed-toolbar" aria-label="Herramientas del feed">
+      <div class="sort-control" role="group" aria-label="Ordenar publicaciones">
+        <button
+          class="sort-button"
+          [class.sort-button--active]="sortMode() === 'recent'"
+          [attr.aria-pressed]="sortMode() === 'recent'"
+          type="button"
+          (click)="setSort('recent')"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3 4h10M3 8h7M3 12h4" />
+          </svg>
+          Más recientes
+        </button>
+        <button
+          class="sort-button"
+          [class.sort-button--active]="sortMode() === 'popular'"
+          [attr.aria-pressed]="sortMode() === 'popular'"
+          type="button"
+          (click)="setSort('popular')"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="m8 1.8 1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6L8 1.8Z" />
+          </svg>
+          Más gustados
+        </button>
+      </div>
+
+      <label class="player-search">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.5" />
+          <path d="m10.5 10.5 3 3" />
+        </svg>
+        <span class="visually-hidden">Filtrar por jugador</span>
+        <input
+          type="search"
+          placeholder="Buscar jugador..."
+          [value]="authorFilter()"
+          (input)="updateAuthorFilter($event)"
+        />
+        <kbd>/</kbd>
+      </label>
+    </section>
+
+    <section class="post-list" aria-label="Publicaciones de la comunidad">
+      @for (post of visiblePosts(); track post.id) {
+        <article class="post-card">
+          <header class="post-header">
+            <div class="author-cluster">
+              <div
+                class="avatar-frame"
+                [class.avatar-frame--ember]="post.avatarTone === 'ember'"
+                [class.avatar-frame--stone]="post.avatarTone === 'stone'"
+                [class.avatar-frame--plum]="post.avatarTone === 'plum'"
+              >
+                <span class="avatar-initials">{{ post.initials }}</span>
+              </div>
+              <div class="author-details">
+                <div class="author-line">
+                  <span class="author-name">{{ post.author }}</span>
+                  <span class="author-handle">&#64;{{ post.handle }}</span>
+                </div>
+                <span class="post-time">{{ post.timeLabel }}</span>
+              </div>
+            </div>
+            <span class="game-tag"><span class="tag-mark"></span>{{ post.game }}</span>
+          </header>
+
+          <div class="post-copy">
+            <h2>{{ post.title }}</h2>
+            <p>{{ post.message }}</p>
+          </div>
+
+          <div
+            class="post-art"
+            [class.post-art--underworld]="post.art === 'underworld'"
+            [class.post-art--afterlight]="post.art === 'afterlight'"
+            [class.post-art--newdawn]="post.art === 'newdawn'"
+            role="img"
+            [attr.aria-label]="'Imagen de muestra para ' + post.game"
+          >
+            <div class="art-grid" aria-hidden="true"></div>
+            <div class="art-orb" aria-hidden="true"></div>
+            <div class="art-structure" aria-hidden="true"></div>
+            <div class="art-caption">
+              <span class="art-overline">CAPTURA DE LA PARTIDA</span>
+              <span class="art-game-title">{{ post.game }}</span>
+            </div>
+              <span class="art-index" aria-hidden="true">LOBBY / 0{{ post.id % 10 }}</span>
+          </div>
+
+          <footer class="post-footer">
+            <button
+              class="post-action like-button"
+              [class.like-button--liked]="post.liked"
+              [attr.aria-pressed]="post.liked"
+              [attr.aria-label]="post.liked ? 'Quitar Me gusta' : 'Dar Me gusta'"
+              type="button"
+              (click)="toggleLike(post.id)"
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M16.8 4.2a4.1 4.1 0 0 0-5.8 0L10 5.3 8.9 4.2a4.1 4.1 0 0 0-5.8 5.8L10 17l6.8-7a4.1 4.1 0 0 0 0-5.8Z" />
+              </svg>
+              <span>{{ post.likes }}</span>
+              <span class="action-word">Me gusta</span>
+            </button>
+            <span class="post-action post-comments" aria-label="Cantidad de comentarios">
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M16.8 9.6a6.8 6.8 0 0 1-7 6.7 7.2 7.2 0 0 1-3.1-.7L3 17l1.2-3.1a6.5 6.5 0 0 1-1.2-3.8 6.8 6.8 0 0 1 7-6.7 6.8 6.8 0 0 1 6.8 6.2Z" />
+              </svg>
+              <span>{{ post.comments }} comentarios</span>
+            </span>
+            <span class="post-footer-note">UNA PARTIDA COMPARTIDA</span>
+          </footer>
+        </article>
+      } @empty {
+        <div class="empty-state" role="status">
+          <span class="empty-glyph" aria-hidden="true">⌕</span>
+          <h2>No encontramos a ese jugador.</h2>
+          <p>Probá con otro nombre o usuario.</p>
+        </div>
+      }
+    </section>
+
+    <p class="feed-end"><span></span> ESTÁS AL DÍA <span></span></p>
+  </main>
+
+  <aside class="composer-dock" aria-label="Compartir una publicación de muestra">
+    <div class="composer-inner">
+      <div class="composer-prompt">
+        <span class="composer-plus" aria-hidden="true">+</span>
+        <div>
+          <span class="composer-title">¿Qué estás jugando hoy?</span>
+          <span class="composer-subtitle">Compartí una partida con el lobby.</span>
+        </div>
+      </div>
+      <label class="composer-input-wrap">
+        <span class="visually-hidden">Escribir una publicación</span>
+        <input
+          type="text"
+          maxlength="280"
+          placeholder="Escribí algo para la comunidad..."
+          [value]="draft()"
+          (input)="updateDraft($event)"
+          (keydown.enter)="publishPreview()"
+        />
+      </label>
+      <button class="publish-button" type="button" [disabled]="!draft().trim()" (click)="publishPreview()">
+        Publicar
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3 8h10M8.5 3.5 13 8l-4.5 4.5" />
+        </svg>
+      </button>
+    </div>
+  </aside>
+</div>
