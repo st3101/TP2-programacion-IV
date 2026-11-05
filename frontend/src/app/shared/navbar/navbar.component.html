@@ -1,0 +1,17 @@
+<header class="topbar">
+  <a class="brand" routerLink="/feed" aria-label="Lobby, ir al feed">
+    <span class="brand-mark" aria-hidden="true"><span></span></span>
+    <span class="brand-name">lobby<span>.</span></span>
+  </a>
+
+  <nav class="main-nav" aria-label="Navegación principal">
+    <a class="nav-link" [class.nav-link--active]="currentPage === 'feed'" routerLink="/feed" [attr.aria-current]="currentPage === 'feed' ? 'page' : null">Feed</a>
+    <a class="nav-link" [class.nav-link--active]="currentPage === 'profile'" routerLink="/mi-perfil" [attr.aria-current]="currentPage === 'profile' ? 'page' : null">Mi perfil</a>
+    <span class="nav-link nav-link--future" aria-disabled="true">Descubrir</span>
+    <span class="nav-link nav-link--future" aria-disabled="true">Juegos</span>
+    <span class="nav-link nav-link--future" aria-disabled="true">Comunidad</span>
+    <span class="nav-link nav-link--future nav-link--saved" aria-disabled="true">Guardados</span>
+  </nav>
+
+  <button class="logout-button" type="button" (click)="logoutRequested.emit()">Cerrar sesión <span aria-hidden="true">↗</span></button>
+</header>

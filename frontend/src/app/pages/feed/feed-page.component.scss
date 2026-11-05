@@ -97,7 +97,10 @@
   color: var(--color-white);
   font-size: 13px;
   font-weight: 500;
+  text-decoration: none;
 }
+
+.profile-chip:hover .profile-name { color: var(--color-coral); }
 
 .profile-avatar,
 .avatar-initials {
@@ -288,8 +291,7 @@
   height: 15px;
 }
 
-.player-search input,
-.composer-input-wrap input {
+.player-search input {
   width: 100%;
   min-width: 0;
   border: 0;
@@ -299,8 +301,7 @@
   font-size: 12px;
 }
 
-.player-search input::placeholder,
-.composer-input-wrap input::placeholder {
+.player-search input::placeholder {
   color: var(--color-smoke);
   opacity: 1;
 }
@@ -782,7 +783,7 @@
 
 .composer-inner {
   display: grid;
-  grid-template-columns: minmax(210px, 0.8fr) minmax(220px, 1.3fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   width: min(100%, 1120px);
   align-items: center;
   gap: 18px;
@@ -793,6 +794,7 @@
   display: flex;
   align-items: center;
   gap: 13px;
+  grid-column: 1 / -1;
 }
 
 .composer-plus {
@@ -827,16 +829,68 @@
 
 .composer-input-wrap {
   display: flex;
+  min-height: 74px;
+  align-items: stretch;
+  padding: 10px 14px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 4%);
+  grid-column: 1 / -1;
+}
+
+.composer-title-input {
+  display: flex;
   min-height: 42px;
   align-items: center;
   padding: 0 14px;
   border: 1px solid rgb(255 255 255 / 12%);
   border-radius: 8px;
   background: rgb(255 255 255 / 4%);
+  grid-column: 1 / -1;
 }
 
-.composer-input-wrap input {
+.composer-title-input input,
+.composer-input-wrap textarea {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-mist);
   font-size: 13px;
+}
+
+.composer-image-input {
+  display: inline-flex;
+  min-height: 40px;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 0 12px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 8px;
+  color: var(--color-smoke);
+  cursor: pointer;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composer-image-input input { display: none; }
+
+.publish-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #ff9999;
+  font-size: 11px;
+}
+
+.uploaded-post-image {
+  display: block;
+  width: 100%;
+  max-height: 560px;
+  border-radius: 9px;
+  object-fit: cover;
 }
 
 .publish-button {
@@ -1118,12 +1172,8 @@
   }
 
   .composer-input-wrap {
-    min-height: 38px;
+    min-height: 60px;
     padding-inline: 11px;
-  }
-
-  .composer-input-wrap input {
-    font-size: 11px;
   }
 
   .publish-button {

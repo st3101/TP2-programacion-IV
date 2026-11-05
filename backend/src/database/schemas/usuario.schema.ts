@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export enum RolUsuario {
+export enum PerfilUsuario {
   USUARIO = 'usuario',
   ADMINISTRADOR = 'administrador',
 }
@@ -35,8 +35,11 @@ export class Usuario {
   @Prop({ trim: true, default: '' })
   imagenPerfilUrl!: string;
 
-  @Prop({ type: String, enum: RolUsuario, default: RolUsuario.USUARIO })
-  rol!: RolUsuario;
+  @Prop({ trim: true, default: '' })
+  imagenPerfilPublicId!: string;
+
+  @Prop({ type: String, enum: PerfilUsuario, default: PerfilUsuario.USUARIO })
+  perfil!: PerfilUsuario;
 
   @Prop({ default: true })
   habilitado!: boolean;

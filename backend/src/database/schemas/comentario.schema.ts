@@ -7,6 +7,8 @@ export type ComentarioDocument = HydratedDocument<Comentario>;
 
 @Schema({ timestamps: true, collection: 'comentarios' })
 export class Comentario {
+  declare createdAt: Date;
+
   @Prop({ type: Types.ObjectId, ref: Publicacion.name, required: true })
   publicacionId!: Types.ObjectId;
 

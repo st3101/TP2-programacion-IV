@@ -6,6 +6,9 @@ export type PublicacionDocument = HydratedDocument<Publicacion>;
 
 @Schema({ timestamps: true, collection: 'publicaciones' })
 export class Publicacion {
+  declare createdAt: Date;
+  declare updatedAt: Date;
+
   @Prop({ type: Types.ObjectId, ref: Usuario.name, required: true, index: true })
   autorId!: Types.ObjectId;
 
@@ -17,6 +20,9 @@ export class Publicacion {
 
   @Prop({ trim: true, default: '' })
   imagenUrl!: string;
+
+  @Prop({ trim: true, default: '' })
+  imagenPublicId!: string;
 
   @Prop({ type: Date, default: null })
   eliminadaEn!: Date | null;

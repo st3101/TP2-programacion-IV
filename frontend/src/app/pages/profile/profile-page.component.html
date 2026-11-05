@@ -1,0 +1,103 @@
+<main class="profile-shell">
+  <app-navbar currentPage="profile" (logoutRequested)="logout()" />
+
+  <section class="profile-content" aria-labelledby="profile-title">
+    <div class="page-heading">
+      <p class="eyebrow"><span class="live-dot"></span> TU ESPACIO EN LOBBY</p>
+      <h1 id="profile-title">Mi <span>perfil.</span></h1>
+      <p>Tu identidad, tus partidas y las conversaciones que empezaste.</p>
+    </div>
+
+    @if (loading()) {
+      <div class="status-card" role="status"><span class="loading-indicator"></span> Cargando tu perfil...</div>
+    } @else if (profile(); as data) {
+      <section class="identity-card" aria-label="Datos de mi perfil">
+        <div class="cover-art" aria-hidden="true"><span class="cover-orb"></span><span class="cover-grid"></span><span class="cover-code">LOBBY / PLAYER PROFILE</span></div>
+        <div class="identity-main">
+          @if (data.usuario.imagenPerfilUrl) {
+            <img class="profile-avatar" [src]="data.usuario.imagenPerfilUrl" [alt]="'Foto de perfil de ' + data.usuario.nombre" />
+          } @else {
+            <div class="profile-avatar profile-avatar--fallback" aria-label="Sin foto de perfil">{{ initials(data.usuario.nombre, data.usuario.apellido) }}</div>
+          }
+          <div class="identity-copy">
+            <span class="username">&#64;{{ data.usuario.nombreUsuario }}</span>
+            <h2>{{ data.usuario.nombre }} {{ data.usuario.apellido }}</h2>
+            <p>{{ data.usuario.descripcion || 'Todavía no agregaste una descripción.' }}</p>
+          </div>
+          <button class="edit-button" type="button" (click)="startEditing()">Editar perfil <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="profile-facts">
+          <div><span class="fact-label">CORREO</span><strong>{{ data.usuario.correo }}</strong></div>
+          <div><span class="fact-label">FECHA DE NACIMIENTO</span><strong>{{ data.usuario.fechaNacimiento | date: 'dd/MM/yyyy' }}</strong></div>
+          <div><span class="fact-label">PERFIL</span><strong class="role-badge"><i></i>{{ data.usuario.perfil }}</strong></div>
+        </div>
+      </section>
+
+      @if (editing()) {
+        <section class="edit-card" aria-labelledby="edit-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">ACTUALIZÁ TUS DATOS</p><h2 id="edit-title">Editar perfil</h2></div>
+            <button class="close-edit" type="button" (click)="cancelEditing()" aria-label="Cancelar edición">×</button>
+          </div>
+          <form class="edit-form" (submit)="saveProfile($event)">
+            <label>Nombre<input name="nombre" type="text" maxlength="80" [value]="data.usuario.nombre" required /></label>
+            <label>Apellido<input name="apellido" type="text" maxlength="80" [value]="data.usuario.apellido" required /></label>
+            <label>Nombre de usuario<input name="nombreUsuario" type="text" minlength="3" maxlength="30" [value]="data.usuario.nombreUsuario" required /></label>
+            <label>Fecha de nacimiento<input name="fechaNacimiento" type="date" [value]="dateInput(data.usuario.fechaNacimiento)" required /></label>
+            <label class="field-wide">Descripción<textarea name="descripcion" maxlength="280" rows="3" placeholder="Contale algo a la comunidad">{{ data.usuario.descripcion }}</textarea><small>Hasta 280 caracteres.</small></label>
+            <label class="field-wide profile-file-input">Foto de perfil<input name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" /><small>{{ selectedImageName() || 'JPG, PNG o WEBP. Máximo 5 MB.' }}</small></label>
+            <div class="form-actions field-wide">
+              <button class="cancel-button" type="button" (click)="cancelEditing()">Cancelar</button>
+              <button class="save-button" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar cambios' }}</button>
+            </div>
+          </form>
+        </section>
+      }
+
+      <div class="section-heading posts-heading">
+        <div><p class="eyebrow">LO QUE COMPARTISTE</p><h2>Mis últimas partidas</h2></div>
+        <span class="post-count">{{ data.publicaciones.length }} <span>/ 03</span></span>
+      </div>
+
+      @if (data.publicaciones.length) {
+        <section class="post-list" aria-label="Mis últimas tres publicaciones">
+          @for (post of data.publicaciones; track post.id) {
+            <article class="post-card">
+              <header class="post-meta"><span>PUBLICACIÓN</span><time>{{ post.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</time></header>
+              <h3>{{ post.titulo }}</h3>
+              <p class="post-description">{{ post.descripcion }}</p>
+              @if (post.imagenUrl) { <img class="post-image" [src]="post.imagenUrl" alt="Imagen de la publicación" /> }
+              <div class="comments-heading"><span>CONVERSACIÓN</span><span>{{ post.comentarios.length }} comentarios</span></div>
+              @if (post.comentarios.length) {
+                <div class="comments-list">
+                  @for (comment of post.comentarios; track comment.id) {
+                    <div class="comment-row">
+                      <span class="comment-avatar">{{ initials(comment.autor.nombre, comment.autor.apellido) }}</span>
+                      <div><strong>{{ comment.autor.nombre }} {{ comment.autor.apellido }}</strong><p>{{ comment.mensaje }}</p></div>
+                      <time>{{ comment.createdAt | date: 'dd/MM, HH:mm' }}</time>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="no-comments">Todavía no hay comentarios en esta publicación.</p>
+              }
+            </article>
+          }
+        </section>
+      } @else {
+        <section class="empty-posts">
+          <span class="empty-mark" aria-hidden="true">✳</span>
+          <h3>Todavía no compartiste una partida.</h3>
+          <p>Cuando publiques algo, tus últimas publicaciones y sus comentarios van a aparecer acá.</p>
+          <a routerLink="/feed">Ir al feed <span aria-hidden="true">→</span></a>
+        </section>
+      }
+    } @else {
+      <div class="status-card status-card--error" role="alert">{{ message() }}</div>
+    }
+
+    @if (message() && !loading() && profile()) {
+      <p class="feedback-message" role="status">{{ message() }}</p>
+    }
+  </section>
+</main>

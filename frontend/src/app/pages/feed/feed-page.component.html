@@ -1,26 +1,5 @@
 <div class="feed-shell">
-  <header class="topbar">
-    <a class="brand" routerLink="/feed" aria-label="Lobby, ir al inicio del feed">
-      <span class="brand-mark" aria-hidden="true"><span></span></span>
-      <span class="brand-name">lobby<span class="brand-period">.</span></span>
-    </a>
-
-    <nav class="main-nav" aria-label="Navegación principal">
-      <a class="nav-link nav-link--active" routerLink="/feed" aria-current="page">Feed</a>
-      <span class="nav-link nav-link--future" aria-disabled="true">Descubrir</span>
-      <span class="nav-link nav-link--future" aria-disabled="true">Juegos</span>
-      <span class="nav-link nav-link--future" aria-disabled="true">Comunidad</span>
-      <span class="nav-link nav-link--future" aria-disabled="true">Guardados</span>
-    </nav>
-
-    <div class="profile-chip" aria-label="Perfil de Nico Pereyra">
-      <span class="profile-avatar">NP</span>
-      <span class="profile-name">nicopixel</span>
-      <svg viewBox="0 0 16 16" aria-hidden="true">
-        <path d="m4 6 4 4 4-4" />
-      </svg>
-    </div>
-  </header>
+  <app-navbar currentPage="feed" (logoutRequested)="logout()" />
 
   <main class="page-content">
     <section class="feed-heading" aria-labelledby="feed-title">
@@ -108,6 +87,9 @@
             <p>{{ post.message }}</p>
           </div>
 
+          @if (post.imageUrl) {
+            <img class="uploaded-post-image" [src]="post.imageUrl" alt="Imagen adjunta a la publicación" />
+          } @else {
           <div
             class="post-art"
             [class.post-art--underworld]="post.art === 'underworld'"
@@ -123,8 +105,9 @@
               <span class="art-overline">CAPTURA DE LA PARTIDA</span>
               <span class="art-game-title">{{ post.game }}</span>
             </div>
-              <span class="art-index" aria-hidden="true">LOBBY / 0{{ post.id % 10 }}</span>
+              <span class="art-index" aria-hidden="true">LOBBY / 0{{ post.id.toString().slice(-1) }}</span>
           </div>
+          }
 
           <footer class="post-footer">
             <button
@@ -162,7 +145,7 @@
     <p class="feed-end"><span></span> ESTÁS AL DÍA <span></span></p>
   </main>
 
-  <aside class="composer-dock" aria-label="Compartir una publicación de muestra">
+  <aside class="composer-dock" aria-label="Crear una publicación">
     <div class="composer-inner">
       <div class="composer-prompt">
         <span class="composer-plus" aria-hidden="true">+</span>
@@ -171,23 +154,31 @@
           <span class="composer-subtitle">Compartí una partida con el lobby.</span>
         </div>
       </div>
-      <label class="composer-input-wrap">
-        <span class="visually-hidden">Escribir una publicación</span>
+      <label class="composer-title-input">
+        <span class="visually-hidden">Título de la publicación</span>
         <input
           type="text"
-          maxlength="280"
-          placeholder="Escribí algo para la comunidad..."
-          [value]="draft()"
-          (input)="updateDraft($event)"
-          (keydown.enter)="publishPreview()"
+          maxlength="120"
+          placeholder="Título de la publicación"
+          [value]="titleDraft()"
+          (input)="updateTitle($event)"
         />
       </label>
-      <button class="publish-button" type="button" [disabled]="!draft().trim()" (click)="publishPreview()">
-        Publicar
+      <label class="composer-input-wrap">
+        <span class="visually-hidden">Descripción de la publicación</span>
+        <textarea maxlength="10000" placeholder="Escribí algo para la comunidad..." [value]="draft()" (input)="updateDraft($event)"></textarea>
+      </label>
+      <label class="composer-image-input">
+        <span aria-hidden="true">＋</span> {{ imageName() || 'Agregar foto (opcional)' }}
+        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" />
+      </label>
+      <button class="publish-button" type="button" [disabled]="!titleDraft().trim() || !draft().trim() || publishing()" (click)="publish()">
+        {{ publishing() ? 'Publicando...' : 'Publicar' }}
         <svg viewBox="0 0 16 16" aria-hidden="true">
           <path d="M3 8h10M8.5 3.5 13 8l-4.5 4.5" />
         </svg>
       </button>
+      @if (publishError()) { <p class="publish-error" role="alert">{{ publishError() }}</p> }
     </div>
   </aside>
 </div>

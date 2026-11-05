@@ -1,10 +1,14 @@
-import { Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../auth/auth.service';
+import { PublicationsService } from '../../auth/publications.service';
+import { NavbarComponent } from '../../shared/navbar/navbar.component';
 
 type FeedSort = 'recent' | 'popular';
 
 interface FeedPost {
-  id: number;
+  id: number | string;
   author: string;
   handle: string;
   initials: string;
@@ -18,18 +22,27 @@ interface FeedPost {
   liked: boolean;
   comments: number;
   art: 'underworld' | 'afterlight' | 'newdawn';
+  imageUrl?: string;
 }
 
 @Component({
   selector: 'app-feed-page',
-  imports: [RouterLink],
+  imports: [NavbarComponent],
   templateUrl: './feed-page.component.html',
   styleUrl: './feed-page.component.scss',
 })
 export class FeedPageComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly publicationsService = inject(PublicationsService);
   protected readonly sortMode = signal<FeedSort>('recent');
   protected readonly authorFilter = signal('');
   protected readonly draft = signal('');
+  protected readonly titleDraft = signal('');
+  protected readonly selectedImage = signal<File | null>(null);
+  protected readonly imageName = signal('');
+  protected readonly publishing = signal(false);
+  protected readonly publishError = signal('');
   protected readonly posts = signal<FeedPost[]>([
     {
       id: 1,
@@ -119,6 +132,13 @@ export class FeedPageComponent {
     this.sortMode.set(mode);
   }
 
+  protected logout(): void {
+    this.authService.logout().subscribe({
+      next: () => void this.router.navigateByUrl('/login'),
+      error: () => void this.router.navigateByUrl('/login'),
+    });
+  }
+
   protected updateAuthorFilter(event: Event): void {
     const input = event.target;
     if (input instanceof HTMLInputElement) this.authorFilter.set(input.value);
@@ -129,7 +149,7 @@ export class FeedPageComponent {
     if (input instanceof HTMLInputElement) this.draft.set(input.value);
   }
 
-  protected toggleLike(postId: number): void {
+  protected toggleLike(postId: number | string): void {
     this.posts.update((posts) =>
       posts.map((post) =>
         post.id === postId
@@ -139,32 +159,79 @@ export class FeedPageComponent {
     );
   }
 
-  protected publishPreview(): void {
-    const message = this.draft().trim();
-    if (!message) return;
+  protected updateTitle(event: Event): void {
+    const input = event.target;
+    if (input instanceof HTMLInputElement) this.titleDraft.set(input.value);
+  }
 
-    const now = Date.now();
-    this.posts.update((posts) => [
-      {
-        id: now,
-        author: 'Nico Pereyra',
-        handle: 'nicopixel',
-        initials: 'NP',
-        avatarTone: 'stone',
-        game: 'Mi partida',
-        title: 'Algo que quería compartir',
-        message,
-        timeLabel: 'ahora',
-        createdAt: now,
-        likes: 0,
-        liked: false,
-        comments: 0,
-        art: 'underworld',
+  protected onImageSelected(event: Event): void {
+    const input = event.target instanceof HTMLInputElement ? event.target : null;
+    const image = input?.files?.[0];
+    this.publishError.set('');
+    if (!image) {
+      this.selectedImage.set(null);
+      this.imageName.set('');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type)) {
+      this.publishError.set('La imagen debe ser JPG, PNG o WEBP.');
+      if (input) input.value = '';
+      return;
+    }
+    if (image.size > 5 * 1024 * 1024) {
+      this.publishError.set('La imagen debe pesar 5 MB o menos.');
+      if (input) input.value = '';
+      return;
+    }
+    this.selectedImage.set(image);
+    this.imageName.set(image.name);
+  }
+
+  protected publish(): void {
+    const title = this.titleDraft().trim();
+    const description = this.draft().trim();
+    if (!title || !description || this.publishing()) return;
+
+    this.publishing.set(true);
+    this.publishError.set('');
+    this.publicationsService.create(title, description, this.selectedImage() ?? undefined).subscribe({
+      next: (publication) => {
+        const now = new Date(publication.createdAt).getTime() || Date.now();
+        this.posts.update((posts) => [
+          {
+            id: publication.id,
+            author: 'Mi cuenta',
+            handle: 'mi-cuenta',
+            initials: 'MC',
+            avatarTone: 'stone',
+            game: 'Mi partida',
+            title: publication.titulo,
+            message: publication.descripcion,
+            imageUrl: publication.imagenUrl,
+            timeLabel: 'ahora',
+            createdAt: now,
+            likes: 0,
+            liked: false,
+            comments: 0,
+            art: 'underworld',
+          },
+          ...posts,
+        ]);
+        this.titleDraft.set('');
+        this.draft.set('');
+        this.selectedImage.set(null);
+        this.imageName.set('');
+        this.authorFilter.set('');
+        this.sortMode.set('recent');
       },
-      ...posts,
-    ]);
-    this.draft.set('');
-    this.authorFilter.set('');
-    this.sortMode.set('recent');
+      error: (error: HttpErrorResponse) => {
+        const detail = error.error?.message;
+        this.publishError.set(
+          Array.isArray(detail) ? detail.join(' ') : typeof detail === 'string' ? detail : 'No se pudo publicar. Volvé a intentarlo.',
+        );
+        this.publishing.set(false);
+      },
+      complete: () => this.publishing.set(false),
+    });
   }
 }
