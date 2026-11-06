@@ -3,9 +3,8 @@
   "services": {
     "backend": {
       "root": "backend",
-      "framework": "nestjs",
-      "entrypoint": "src/main.ts",
-      "outputDirectory": "."
+      "runtime": "container",
+      "entrypoint": "Dockerfile"
     },
     "frontend": {
       "root": "frontend",
