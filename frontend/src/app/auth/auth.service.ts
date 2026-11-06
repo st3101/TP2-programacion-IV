@@ -27,7 +27,7 @@ export interface RegisterPayload {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/auth';
+  private readonly apiUrl = '/api/auth';
   private readonly oldTokenKey = 'lobby_access_token';
 
   constructor() {

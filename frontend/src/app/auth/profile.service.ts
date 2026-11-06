@@ -43,7 +43,7 @@ export type ProfileUpdate = Pick<
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/usuarios/me';
+  private readonly apiUrl = '/api/usuarios/me';
 
   getMyProfile(): Observable<MyProfileResponse> {
     return this.http.get<MyProfileResponse>(this.apiUrl);

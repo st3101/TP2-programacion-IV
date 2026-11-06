@@ -10,10 +10,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
   const configService = app.get(ConfigService);
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_ORIGIN') ?? 'http://localhost:4200',
+    origin: true,
     credentials: true,
   });
   await app.listen(Number(configService.get<string>('PORT') ?? 3000));

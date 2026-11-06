@@ -13,7 +13,7 @@ export interface CreatedPublication {
 @Injectable({ providedIn: 'root' })
 export class PublicationsService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/publicaciones';
+  private readonly apiUrl = '/api/publicaciones';
 
   create(titulo: string, descripcion: string, imagen?: File): Observable<CreatedPublication> {
     const body = new FormData();
