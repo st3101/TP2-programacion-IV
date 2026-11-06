@@ -4,8 +4,7 @@
     "backend": {
       "root": "backend",
       "framework": "nestjs",
-      "entrypoint": "src/main.ts",
-      "outputDirectory": "."
+      "outputDirectory": "dist"
     },
     "frontend": {
       "root": "frontend",
