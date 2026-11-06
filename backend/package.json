@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "build": "nest build && node --input-type=module -e \"import { copyFileSync } from 'node:fs'; copyFileSync('package.json', 'dist/package.json')\"",
+    "build": "nest build",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
