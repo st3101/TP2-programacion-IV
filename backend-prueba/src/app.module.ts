@@ -13,7 +13,7 @@ class AppController {
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(process.env.MONGODB_URI ?? '', {
+    MongooseModule.forRoot("mongodb+srv://sleonardi:3cVxZ2eX2btIyiHu@programacioniv.4wuaaks.mongodb.net/?appName=ProgramacionIV", {
       retryAttempts: 1,
       retryDelay: 1000,
       serverSelectionTimeoutMS: 5000,
