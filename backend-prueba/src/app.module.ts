@@ -22,7 +22,7 @@ class RootController {
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(
-      process.env.MONGODB_URL_MONGODB_URI || process.env.MONGODB_URI || '',
+      process.env.MONGODB_URI || process.env.MONGODB_URL_MONGODB_URI || '',
       {
         retryAttempts: 1,
         retryDelay: 1000,
