@@ -1,9 +1,9 @@
-# Etapa 1: función mínima de Vercel
+# Etapa 1: NestJS mínimo sin MongoDB
 
-Esta función no usa NestJS ni MongoDB. Sirve para comprobar que Vercel ejecuta una API Node sencilla.
+Aplicación NestJS mínima, sin MongoDB, para comprobar que Vercel ejecuta el backend.
 
-Ruta: `GET /api/hola`
+Ruta: `GET /api/hola` (la raíz `/` también se reescribe a esa ruta).
 
-Respuesta esperada: `{ "mensaje": "funciona!!!" }`
+Respuesta esperada: `funciona!!!`
 
-Para probarla, importá el repositorio en un proyecto Vercel nuevo y elegí `backend-prueba` como **Root Directory**. No necesita variables de entorno.
+Para desplegar, elegí `backend-prueba` como **Root Directory** y NestJS como **Framework Preset**. No necesita variables de entorno.
