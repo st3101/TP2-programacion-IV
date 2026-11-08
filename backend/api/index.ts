@@ -15,6 +15,15 @@ export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ): Promise<void> {
+  const requestPath = new URL(request.url ?? '/', 'http://localhost').pathname;
+  if (
+    request.method === 'GET' &&
+    (requestPath === '/' || requestPath === '/api' || requestPath === '/api/')
+  ) {
+    response.status(200).json({ message: '¡Funciona!' });
+    return;
+  }
+
   const nestApp = await getApp();
   nestApp.getHttpAdapter().getInstance()(request, response);
 }
