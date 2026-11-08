@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
@@ -6,7 +6,9 @@ import { AppModule } from './app.module';
 
 export function configureApp(app: NestExpressApplication): NestExpressApplication {
   app.use(cookieParser());
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: '', method: RequestMethod.GET }],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
