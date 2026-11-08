@@ -1,9 +1,9 @@
 import { BadRequestException, Body, Controller, Get, Patch, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import type { AuthenticatedRequest } from '../auth/jwt-auth.guard.js';
-import { UpdateProfileDto } from './dto/update-profile.dto.js';
-import { UsuariosService } from './usuarios.service.js';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UsuariosService } from './usuarios.service';
 
 @Controller('usuarios/me')
 @UseGuards(JwtAuthGuard)

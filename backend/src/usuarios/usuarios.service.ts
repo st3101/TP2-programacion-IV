@@ -1,11 +1,11 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
-import { Comentario } from '../database/schemas/comentario.schema.js';
-import { Publicacion } from '../database/schemas/publicacion.schema.js';
-import { Usuario } from '../database/schemas/usuario.schema.js';
-import { UpdateProfileDto } from './dto/update-profile.dto.js';
-import { CloudinaryService } from '../cloudinary/cloudinary.service.js';
+import { Comentario } from '../database/schemas/comentario.schema';
+import { Publicacion } from '../database/schemas/publicacion.schema';
+import { Usuario } from '../database/schemas/usuario.schema';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsuariosService {

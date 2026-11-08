@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Publicacion } from '../database/schemas/publicacion.schema.js';
-import { Usuario } from '../database/schemas/usuario.schema.js';
-import { CloudinaryService } from '../cloudinary/cloudinary.service.js';
-import { CreatePublicacionDto } from './dto/create-publicacion.dto.js';
+import { Publicacion } from '../database/schemas/publicacion.schema';
+import { Usuario } from '../database/schemas/usuario.schema';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 
 @Injectable()
 export class PublicacionesService {

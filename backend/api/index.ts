@@ -1,15 +1,11 @@
-import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { AppModule } from '../src/app.module';
+import { createApp } from '../src/create-app';
 
-let app: NestExpressApplication | undefined;
+let app: Awaited<ReturnType<typeof createApp>> | undefined;
 
-async function getApp(): Promise<NestExpressApplication> {
+async function getApp(): Promise<Awaited<ReturnType<typeof createApp>>> {
   if (!app) {
-    const nestApp = await NestFactory.create<NestExpressApplication>(AppModule);
-    await nestApp.init();
-    app = nestApp;
+    app = await createApp();
   }
 
   return app;

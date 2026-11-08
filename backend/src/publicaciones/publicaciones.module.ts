@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from '../auth/auth.module.js';
-import { Comentario, ComentarioSchema } from '../database/schemas/comentario.schema.js';
-import { MeGusta, MeGustaSchema } from '../database/schemas/me-gusta.schema.js';
-import { Publicacion, PublicacionSchema } from '../database/schemas/publicacion.schema.js';
-import { Usuario, UsuarioSchema } from '../database/schemas/usuario.schema.js';
-import { PublicacionesController } from './publicaciones.controller.js';
-import { PublicacionesService } from './publicaciones.service.js';
-import { CloudinaryModule } from '../cloudinary/cloudinary.module.js';
+import { AuthModule } from '../auth/auth.module';
+import { Comentario, ComentarioSchema } from '../database/schemas/comentario.schema';
+import { MeGusta, MeGustaSchema } from '../database/schemas/me-gusta.schema';
+import { Publicacion, PublicacionSchema } from '../database/schemas/publicacion.schema';
+import { Usuario, UsuarioSchema } from '../database/schemas/usuario.schema';
+import { PublicacionesController } from './publicaciones.controller';
+import { PublicacionesService } from './publicaciones.service';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
