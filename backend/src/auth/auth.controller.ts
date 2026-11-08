@@ -1,9 +1,9 @@
 import { BadRequestException, Body, Controller, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
-import { AuthService } from './auth.service.js';
-import { LoginDto } from './dto/login.dto.js';
-import { RegisterDto } from './dto/register.dto.js';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {

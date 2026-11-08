@@ -3,10 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { hash, compare } from 'bcryptjs';
 import { HydratedDocument, Model } from 'mongoose';
-import { PerfilUsuario, Usuario } from '../database/schemas/usuario.schema.js';
-import { CloudinaryService } from '../cloudinary/cloudinary.service.js';
-import { LoginDto } from './dto/login.dto.js';
-import { RegisterDto } from './dto/register.dto.js';
+import { PerfilUsuario, Usuario } from '../database/schemas/usuario.schema';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
