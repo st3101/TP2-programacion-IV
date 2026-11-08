@@ -4,8 +4,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
-export async function createApp(): Promise<NestExpressApplication> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+export function configureApp(app: NestExpressApplication): NestExpressApplication {
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
@@ -16,6 +15,11 @@ export async function createApp(): Promise<NestExpressApplication> {
     }),
   );
   app.enableCors({ origin: true, credentials: true });
+  return app;
+}
+
+export async function createApp(): Promise<NestExpressApplication> {
+  const app = configureApp(await NestFactory.create<NestExpressApplication>(AppModule));
   await app.init();
   return app;
 }
