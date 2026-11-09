@@ -21,19 +21,35 @@ export class PublicacionesService {
       .populate('autorId', 'nombre apellido nombreUsuario imagenPerfilUrl')
       .lean();
 
-    return publicaciones.map((publicacion) => ({
-      id: publicacion._id.toString(),
-      titulo: publicacion.titulo,
-      descripcion: publicacion.descripcion,
-      imagenUrl: publicacion.imagenUrl,
-      createdAt: publicacion.createdAt,
-      autor: publicacion.autorId,
-    }));
+    return publicaciones.map((publicacion) => {
+      const autor = publicacion.autorId as unknown as {
+        _id: Types.ObjectId;
+        nombre: string;
+        apellido: string;
+        nombreUsuario: string;
+        imagenPerfilUrl: string;
+      };
+
+      return {
+        id: publicacion._id.toString(),
+        titulo: publicacion.titulo,
+        descripcion: publicacion.descripcion,
+        imagenUrl: publicacion.imagenUrl,
+        createdAt: publicacion.createdAt,
+        autor: autor ? {
+          id: autor._id.toString(),
+          nombre: autor.nombre,
+          apellido: autor.apellido,
+          nombreUsuario: autor.nombreUsuario,
+          imagenPerfilUrl: autor.imagenPerfilUrl,
+        } : null,
+      };
+    });
   }
 
   async create(usuarioId: string, dto: CreatePublicacionDto, image?: { buffer: Buffer; mimetype: string }) {
-    const usuarioExiste = await this.usuarioModel.exists({ _id: new Types.ObjectId(usuarioId) });
-    if (!usuarioExiste) throw new NotFoundException('No se encontró el usuario de la sesión.');
+    const usuario = await this.usuarioModel.findById(usuarioId).select('nombre apellido nombreUsuario imagenPerfilUrl');
+    if (!usuario) throw new NotFoundException('No se encontró el usuario de la sesión.');
 
     const uploadedImage = image
       ? await this.cloudinaryService.uploadImage(image.buffer, 'lobby/publicaciones')
@@ -59,6 +75,13 @@ export class PublicacionesService {
       descripcion: publicacion.descripcion,
       imagenUrl: publicacion.imagenUrl,
       createdAt: publicacion.createdAt,
+      autor: {
+        id: usuario._id.toString(),
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        nombreUsuario: usuario.nombreUsuario,
+        imagenPerfilUrl: usuario.imagenPerfilUrl,
+      },
     };
   }
 }

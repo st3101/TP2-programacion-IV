@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { PublicationsService } from '../../auth/publications.service';
@@ -31,7 +31,7 @@ interface FeedPost {
   templateUrl: './feed-page.component.html',
   styleUrl: './feed-page.component.scss',
 })
-export class FeedPageComponent {
+export class FeedPageComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly publicationsService = inject(PublicationsService);
@@ -43,77 +43,45 @@ export class FeedPageComponent {
   protected readonly imageName = signal('');
   protected readonly publishing = signal(false);
   protected readonly publishError = signal('');
+  protected readonly feedError = signal('');
   protected readonly composerOpen = signal(false);
-  protected readonly posts = signal<FeedPost[]>([
-    {
-      id: 1,
-      author: 'Mora Castillo',
-      handle: 'mora.exe',
-      initials: 'MC',
-      avatarTone: 'ember',
-      game: 'Hades II',
-      title: 'Una corrida más y me voy. Sí, claro.',
-      message:
-        'Me armé una build de dagas y salió muchísimo mejor de lo esperado. La pelea con Hécate estuvo por un pelo. ¿Qué arma están usando ustedes?',
-      timeLabel: 'hace 12 min',
-      createdAt: Date.now() - 12 * 60_000,
-      likes: 28,
-      liked: false,
-      comments: 8,
-      art: 'underworld',
-    },
-    {
-      id: 2,
-      author: 'Nico Pereyra',
-      handle: 'nicopixel',
-      initials: 'NP',
-      avatarTone: 'stone',
-      game: 'Hollow Knight',
-      title: 'Por fin encontré el camino.',
-      message:
-        'Tres horas dando vueltas para descubrir que la entrada estaba justo donde ya había pasado. El mapa no perdona, pero qué lindo se siente encontrar una zona nueva.',
-      timeLabel: 'hace 46 min',
-      createdAt: Date.now() - 46 * 60_000,
-      likes: 17,
-      liked: true,
-      comments: 5,
-      art: 'afterlight',
-    },
-    {
-      id: 3,
-      author: 'Luz Benítez',
-      handle: 'luzjuega',
-      initials: 'LB',
-      avatarTone: 'plum',
-      game: 'Stardew Valley',
-      title: 'Año 3 y todavía no me canso de esta granja.',
-      message:
-        'Hoy terminé el invernadero y organicé todo por estaciones. Les dejo un vistazo a mi rincón favorito: el bosque cuando cae la tarde.',
-      timeLabel: 'hace 2 h',
-      createdAt: Date.now() - 2 * 60 * 60_000,
-      likes: 42,
-      liked: false,
-      comments: 13,
-      art: 'newdawn',
-    },
-    {
-      id: 4,
-      author: 'Mora Castillo',
-      handle: 'mora.exe',
-      initials: 'MC',
-      avatarTone: 'ember',
-      game: 'Celeste',
-      title: 'Una pantalla difícil, muchas ganas de seguir.',
-      message:
-        'Me quedé trabada un buen rato, respiré y salió. A veces el mejor logro es no soltar el control.',
-      timeLabel: 'hace 5 h',
-      createdAt: Date.now() - 5 * 60 * 60_000,
-      likes: 31,
-      liked: false,
-      comments: 4,
-      art: 'afterlight',
-    },
-  ]);
+  protected readonly posts = signal<FeedPost[]>([]);
+
+  ngOnInit(): void {
+    this.publicationsService.list().subscribe({
+      next: (publications) => {
+        this.posts.set(publications.map((publication, index) => {
+          const author = publication.autor;
+          const name = `${author?.nombre ?? ''} ${author?.apellido ?? ''}`.trim();
+          const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '??';
+          return {
+            id: publication.id,
+            author: name || author?.nombreUsuario || 'Jugador',
+            handle: author?.nombreUsuario || 'jugador',
+            initials,
+            avatarTone: (['ember', 'stone', 'plum'] as const)[index % 3],
+            game: 'Comunidad',
+            title: publication.titulo,
+            message: publication.descripcion,
+            imageUrl: publication.imagenUrl || undefined,
+            timeLabel: this.formatTime(publication.createdAt),
+            createdAt: new Date(publication.createdAt).getTime() || Date.now(),
+            likes: 0, liked: false, comments: 0, art: 'underworld',
+          };
+        }));
+      },
+      error: () => this.feedError.set('No se pudieron cargar las publicaciones. Recargá la página para intentar otra vez.'),
+    });
+  }
+
+  private formatTime(value: string): string {
+    const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60_000));
+    if (minutes < 1) return 'ahora';
+    if (minutes < 60) return `hace ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `hace ${hours} h`;
+    return `hace ${Math.floor(hours / 24)} d`;
+  }
 
   protected readonly visiblePosts = computed(() => {
     const query = this.authorFilter().trim().toLocaleLowerCase('es-AR');
@@ -147,7 +115,7 @@ export class FeedPageComponent {
 
   protected updateDraft(event: Event): void {
     const input = event.target;
-    if (input instanceof HTMLInputElement) this.draft.set(input.value);
+    if (input instanceof HTMLTextAreaElement) this.draft.set(input.value);
   }
 
   protected toggleLike(postId: number | string): void {
@@ -201,9 +169,9 @@ export class FeedPageComponent {
         this.posts.update((posts) => [
           {
             id: publication.id,
-            author: 'Mi cuenta',
-            handle: 'mi-cuenta',
-            initials: 'MC',
+            author: `${publication.autor.nombre} ${publication.autor.apellido}`.trim(),
+            handle: publication.autor.nombreUsuario,
+            initials: `${publication.autor.nombre[0] ?? ''}${publication.autor.apellido[0] ?? ''}`.toUpperCase(),
             avatarTone: 'stone',
             game: 'Mi partida',
             title: publication.titulo,
