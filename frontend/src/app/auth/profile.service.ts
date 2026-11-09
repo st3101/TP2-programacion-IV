@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../api-base-url';
 
 export interface ProfileComment {
   id: string;
@@ -43,7 +44,7 @@ export type ProfileUpdate = Pick<
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/usuarios/me';
+  private readonly apiUrl = `${API_BASE_URL}/api/usuarios/me`;
 
   getMyProfile(): Observable<MyProfileResponse> {
     return this.http.get<MyProfileResponse>(this.apiUrl);

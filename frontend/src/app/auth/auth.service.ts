@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../api-base-url';
 
 export interface AuthResponse {
   usuario: {
@@ -27,7 +28,7 @@ export interface RegisterPayload {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/auth';
+  private readonly apiUrl = `${API_BASE_URL}/api/auth`;
   private readonly oldTokenKey = 'lobby_access_token';
 
   constructor() {
