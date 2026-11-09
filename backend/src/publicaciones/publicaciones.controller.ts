@@ -6,7 +6,6 @@ import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { PublicacionesService } from './publicaciones.service';
 
 @Controller('publicaciones')
-@UseGuards(JwtAuthGuard)
 export class PublicacionesController {
   constructor(private readonly publicacionesService: PublicacionesService) {}
 
@@ -16,6 +15,7 @@ export class PublicacionesController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('imagen', {
       limits: { fileSize: 5 * 1024 * 1024 },

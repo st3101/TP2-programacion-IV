@@ -9,12 +9,25 @@ export interface CreatedPublication {
   descripcion: string;
   imagenUrl: string;
   createdAt: string;
+  autor: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    nombreUsuario: string;
+    imagenPerfilUrl: string;
+  };
 }
+
+export type Publication = CreatedPublication;
 
 @Injectable({ providedIn: 'root' })
 export class PublicationsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${API_BASE_URL}/api/publicaciones`;
+
+  list(): Observable<Publication[]> {
+    return this.http.get<Publication[]>(this.apiUrl);
+  }
 
   create(titulo: string, descripcion: string, imagen?: File): Observable<CreatedPublication> {
     const body = new FormData();

@@ -9,7 +9,7 @@
         <p class="heading-note">Partidas, hallazgos y esas cosas que dan ganas de compartir.</p>
       </div>
       <div class="heading-aside" aria-label="Actividad del feed">
-        <span class="aside-number">04</span>
+        <span class="aside-number">{{ posts().length.toString().padStart(2, '0') }}</span>
         <span class="aside-label">PUBLICACIONES<br />EN EL FEED</span>
       </div>
     </section>
@@ -59,6 +59,7 @@
     </section>
 
     <section class="post-list" aria-label="Publicaciones de la comunidad">
+      @if (feedError()) { <p class="publish-error" role="alert">{{ feedError() }}</p> }
       @for (post of visiblePosts(); track post.id) {
         <article class="post-card">
           <header class="post-header">
@@ -136,8 +137,13 @@
       } @empty {
         <div class="empty-state" role="status">
           <span class="empty-glyph" aria-hidden="true">⌕</span>
-          <h2>No encontramos a ese jugador.</h2>
-          <p>Probá con otro nombre o usuario.</p>
+          @if (authorFilter().trim()) {
+            <h2>No encontramos a ese jugador.</h2>
+            <p>Probá con otro nombre o usuario.</p>
+          } @else {
+            <h2>Todavía no hay publicaciones.</h2>
+            <p>Sé la primera persona en compartir algo con la comunidad.</p>
+          }
         </div>
       }
     </section>
