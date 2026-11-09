@@ -145,7 +145,14 @@
     <p class="feed-end"><span></span> ESTÁS AL DÍA <span></span></p>
   </main>
 
-  <aside class="composer-dock" aria-label="Crear una publicación">
+  <aside class="composer-dock" [class.composer-dock--open]="composerOpen()" aria-label="Crear una publicación">
+    @if (!composerOpen()) {
+      <button class="composer-trigger" type="button" (click)="composerOpen.set(true)" aria-expanded="false">
+        <span class="composer-plus" aria-hidden="true">+</span>
+        <span>¿Qué estás jugando hoy?</span>
+        <span class="composer-trigger-action">Hacer publicación</span>
+      </button>
+    } @else {
     <div class="composer-inner">
       <div class="composer-prompt">
         <span class="composer-plus" aria-hidden="true">+</span>
@@ -154,6 +161,7 @@
           <span class="composer-subtitle">Compartí una partida con el lobby.</span>
         </div>
       </div>
+      <button class="composer-close" type="button" (click)="composerOpen.set(false)" aria-label="Cerrar formulario">×</button>
       <label class="composer-title-input">
         <span class="visually-hidden">Título de la publicación</span>
         <input
@@ -180,5 +188,6 @@
       </button>
       @if (publishError()) { <p class="publish-error" role="alert">{{ publishError() }}</p> }
     </div>
+    }
   </aside>
 </div>

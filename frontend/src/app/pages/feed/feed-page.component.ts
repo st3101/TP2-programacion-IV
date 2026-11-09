@@ -43,6 +43,7 @@ export class FeedPageComponent {
   protected readonly imageName = signal('');
   protected readonly publishing = signal(false);
   protected readonly publishError = signal('');
+  protected readonly composerOpen = signal(false);
   protected readonly posts = signal<FeedPost[]>([
     {
       id: 1,
@@ -223,6 +224,7 @@ export class FeedPageComponent {
         this.imageName.set('');
         this.authorFilter.set('');
         this.sortMode.set('recent');
+        this.composerOpen.set(false);
       },
       error: (error: HttpErrorResponse) => {
         const detail = error.error?.message;
