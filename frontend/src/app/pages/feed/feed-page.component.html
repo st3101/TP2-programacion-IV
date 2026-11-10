@@ -66,6 +66,7 @@
         </div>
       }
       @if (likeError()) { <p class="publish-error" role="alert">{{ likeError() }}</p> }
+      @if (deleteError()) { <p class="publish-error" role="alert">{{ deleteError() }}</p> }
       @for (post of visiblePosts(); track post.id) {
         <article class="post-card">
           <header class="post-header">
@@ -132,14 +133,71 @@
               <span>{{ post.likes }}</span>
               <span class="action-word">Me gusta</span>
             </button>
-            <span class="post-action post-comments" aria-label="Cantidad de comentarios">
+            <button
+              class="post-action post-comments"
+              type="button"
+              [attr.aria-expanded]="isCommentThreadOpen(post.id)"
+              [attr.aria-label]="(isCommentThreadOpen(post.id) ? 'Ocultar' : 'Ver') + ' comentarios: ' + post.comments"
+              (click)="toggleCommentThread(post.id)"
+            >
               <svg viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M16.8 9.6a6.8 6.8 0 0 1-7 6.7 7.2 7.2 0 0 1-3.1-.7L3 17l1.2-3.1a6.5 6.5 0 0 1-1.2-3.8 6.8 6.8 0 0 1 7-6.7 6.8 6.8 0 0 1 6.8 6.2Z" />
               </svg>
               <span>{{ post.comments }} comentarios</span>
-            </span>
+            </button>
+            @if (isOwnPost(post)) {
+              <div class="post-delete-actions">
+                @if (isConfirmingDelete(post.id)) {
+                  <span>¿Eliminar?</span>
+                  <button type="button" (click)="cancelDelete()" [disabled]="isDeletingPost(post.id)">Cancelar</button>
+                  <button class="post-delete-confirm" type="button" (click)="deletePost(post.id)" [disabled]="isDeletingPost(post.id) || loadingFeed()">
+                    {{ isDeletingPost(post.id) ? 'Eliminando...' : 'Sí, eliminar' }}
+                  </button>
+                } @else {
+                  <button type="button" (click)="requestDelete(post.id)" [disabled]="loadingFeed()">Eliminar</button>
+                }
+              </div>
+            }
             <span class="post-footer-note">UNA PARTIDA COMPARTIDA</span>
           </footer>
+
+          @if (isCommentThreadOpen(post.id)) {
+            <section class="comment-thread" [attr.aria-label]="'Comentarios de ' + post.title">
+              @if (isCommentsLoading(post.id)) {
+                <p class="comment-status">Cargando comentarios...</p>
+              }
+              @if (commentError(post.id)) {
+                <p class="comment-error" role="alert">{{ commentError(post.id) }}</p>
+              }
+              @for (comment of commentsFor(post.id); track comment.id) {
+                <article class="comment-item">
+                  <header>
+                    <strong>{{ comment.autor ? comment.autor.nombre + ' ' + comment.autor.apellido : 'Usuario' }}</strong>
+                    @if (comment.autor) { <span>&#64;{{ comment.autor.nombreUsuario }}</span> }
+                    <time>{{ commentTime(comment.createdAt) }}</time>
+                  </header>
+                  <p>{{ comment.mensaje }}</p>
+                </article>
+              } @empty {
+                @if (!isCommentsLoading(post.id)) {
+                  <p class="comment-status">Todavía no hay comentarios. ¡Sé el primero!</p>
+                }
+              }
+              <form class="comment-form" (submit)="$event.preventDefault(); submitComment(post.id)">
+                <label class="visually-hidden" [for]="'comment-' + post.id">Escribir un comentario</label>
+                <textarea
+                  [id]="'comment-' + post.id"
+                  maxlength="3000"
+                  placeholder="Escribí un comentario..."
+                  [value]="commentText(post.id)"
+                  (input)="updateCommentDraft(post.id, $event)"
+                ></textarea>
+                <button type="submit" [disabled]="!commentText(post.id).trim() || isCommentSubmitting(post.id) || isCommentsLoading(post.id)">
+                  {{ isCommentSubmitting(post.id) ? 'Enviando...' : 'Comentar' }}
+                </button>
+              </form>
+            </section>
+          }
         </article>
       } @empty {
         <div class="empty-state" role="status">
