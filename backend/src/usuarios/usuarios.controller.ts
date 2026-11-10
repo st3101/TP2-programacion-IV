@@ -18,7 +18,7 @@ export class UsuariosController {
   @Patch()
   @UseInterceptors(
     FileInterceptor('imagenPerfil', {
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: 10 * 1024 * 1024 },
       fileFilter: (_request, file, callback) => {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
           callback(new BadRequestException('La foto debe ser JPG, PNG o WEBP.'), false);

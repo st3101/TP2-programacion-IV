@@ -77,8 +77,8 @@ export class ProfilePageComponent implements OnInit {
       if (input) input.value = '';
       return;
     }
-    if (image.size > 5 * 1024 * 1024) {
-      this.message.set('La foto debe pesar 5 MB o menos.');
+    if (image.size > 10 * 1024 * 1024) {
+      this.message.set('La foto debe pesar 10 MB o menos.');
       if (input) input.value = '';
       return;
     }

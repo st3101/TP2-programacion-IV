@@ -18,7 +18,15 @@ export interface CreatedPublication {
   };
 }
 
-export type Publication = CreatedPublication;
+export interface Publication {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  imagenUrl: string;
+  createdAt: string;
+  likes: number;
+  autor: CreatedPublication['autor'] | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class PublicationsService {
@@ -27,6 +35,14 @@ export class PublicationsService {
 
   list(): Observable<Publication[]> {
     return this.http.get<Publication[]>(this.apiUrl);
+  }
+
+  myLikes(): Observable<{ publicacionIds: string[] }> {
+    return this.http.get<{ publicacionIds: string[] }>(`${this.apiUrl}/me-gustas`);
+  }
+
+  toggleLike(publicationId: string): Observable<{ liked: boolean; likes: number }> {
+    return this.http.post<{ liked: boolean; likes: number }>(`${this.apiUrl}/${publicationId}/me-gusta`, {});
   }
 
   create(titulo: string, descripcion: string, imagen?: File): Observable<CreatedPublication> {

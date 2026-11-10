@@ -44,6 +44,8 @@ export class FeedPageComponent implements OnInit {
   protected readonly publishing = signal(false);
   protected readonly publishError = signal('');
   protected readonly feedError = signal('');
+  protected readonly likeError = signal('');
+  protected readonly pendingLikes = signal<ReadonlySet<string>>(new Set());
   protected readonly composerOpen = signal(false);
   protected readonly posts = signal<FeedPost[]>([]);
 
@@ -66,9 +68,15 @@ export class FeedPageComponent implements OnInit {
             imageUrl: publication.imagenUrl || undefined,
             timeLabel: this.formatTime(publication.createdAt),
             createdAt: new Date(publication.createdAt).getTime() || Date.now(),
-            likes: 0, liked: false, comments: 0, art: 'underworld',
+            likes: publication.likes, liked: false, comments: 0, art: 'underworld',
           };
         }));
+        this.publicationsService.myLikes().subscribe({
+          next: ({ publicacionIds }) => {
+            const likedIds = new Set(publicacionIds);
+            this.posts.update((posts) => posts.map((post) => ({ ...post, liked: likedIds.has(String(post.id)) })));
+          },
+        });
       },
       error: () => this.feedError.set('No se pudieron cargar las publicaciones. Recargá la página para intentar otra vez.'),
     });
@@ -118,14 +126,36 @@ export class FeedPageComponent implements OnInit {
     if (input instanceof HTMLTextAreaElement) this.draft.set(input.value);
   }
 
+  protected isLikePending(postId: number | string): boolean {
+    return this.pendingLikes().has(String(postId));
+  }
+
   protected toggleLike(postId: number | string): void {
-    this.posts.update((posts) =>
-      posts.map((post) =>
-        post.id === postId
-          ? { ...post, liked: !post.liked, likes: post.likes + (post.liked ? -1 : 1) }
-          : post,
-      ),
-    );
+    const id = String(postId);
+    if (this.isLikePending(id)) return;
+
+    this.likeError.set('');
+    this.pendingLikes.update((ids) => new Set(ids).add(id));
+    this.publicationsService.toggleLike(id).subscribe({
+      next: ({ liked, likes }) => {
+        this.posts.update((posts) => posts.map((post) => post.id === postId ? { ...post, liked, likes } : post));
+      },
+      error: (error: HttpErrorResponse) => {
+        this.likeError.set(error.status === 401
+          ? 'Iniciá sesión para marcar Me gusta.'
+          : 'No se pudo actualizar el Me gusta. Intentá otra vez.');
+        this.clearPendingLike(id);
+      },
+      complete: () => this.clearPendingLike(id),
+    });
+  }
+
+  private clearPendingLike(id: string): void {
+    this.pendingLikes.update((pending) => {
+      const next = new Set(pending);
+      next.delete(id);
+      return next;
+    });
   }
 
   protected updateTitle(event: Event): void {
@@ -147,8 +177,8 @@ export class FeedPageComponent implements OnInit {
       if (input) input.value = '';
       return;
     }
-    if (image.size > 5 * 1024 * 1024) {
-      this.publishError.set('La imagen debe pesar 5 MB o menos.');
+    if (image.size > 10 * 1024 * 1024) {
+      this.publishError.set('La imagen debe pesar 10 MB o menos.');
       if (input) input.value = '';
       return;
     }
