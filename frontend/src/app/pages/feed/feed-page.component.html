@@ -9,7 +9,7 @@
         <p class="heading-note">Partidas, hallazgos y esas cosas que dan ganas de compartir.</p>
       </div>
       <div class="heading-aside" aria-label="Actividad del feed">
-        <span class="aside-number">{{ posts().length.toString().padStart(2, '0') }}</span>
+        <span class="aside-number">{{ totalPublications().toString().padStart(2, '0') }}</span>
         <span class="aside-label">PUBLICACIONES<br />EN EL FEED</span>
       </div>
     </section>
@@ -59,7 +59,12 @@
     </section>
 
     <section class="post-list" aria-label="Publicaciones de la comunidad">
-      @if (feedError()) { <p class="publish-error" role="alert">{{ feedError() }}</p> }
+      @if (feedError()) {
+        <div class="feed-load-error" role="alert">
+          <span>{{ feedError() }}</span>
+          <button type="button" (click)="loadNextPage()">Reintentar</button>
+        </div>
+      }
       @if (likeError()) { <p class="publish-error" role="alert">{{ likeError() }}</p> }
       @for (post of visiblePosts(); track post.id) {
         <article class="post-card">
@@ -139,7 +144,12 @@
       } @empty {
         <div class="empty-state" role="status">
           <span class="empty-glyph" aria-hidden="true">⌕</span>
-          @if (authorFilter().trim()) {
+          @if (loadingFeed()) {
+            <h2>Cargando publicaciones...</h2>
+          } @else if (feedError()) {
+            <h2>No pudimos cargar el feed.</h2>
+            <button type="button" (click)="loadNextPage()">Reintentar</button>
+          } @else if (authorFilter().trim()) {
             <h2>No encontramos a ese jugador.</h2>
             <p>Probá con otro nombre o usuario.</p>
           } @else {
@@ -150,7 +160,12 @@
       }
     </section>
 
-    <p class="feed-end"><span></span> ESTÁS AL DÍA <span></span></p>
+    @if (loadingFeed() && posts().length) {
+      <p class="feed-end"><span></span> CARGANDO MÁS PUBLICACIONES <span></span></p>
+    } @else if (!hasMore() && posts().length) {
+      <p class="feed-end"><span></span> ESTÁS AL DÍA <span></span></p>
+    }
+    <div #feedSentinel class="feed-sentinel" aria-hidden="true"></div>
   </main>
 
   <aside class="composer-dock" [class.composer-dock--open]="composerOpen()" aria-label="Crear una publicación">

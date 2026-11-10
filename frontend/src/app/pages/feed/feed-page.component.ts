@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { PublicationsService } from '../../auth/publications.service';
@@ -31,7 +31,7 @@ interface FeedPost {
   templateUrl: './feed-page.component.html',
   styleUrl: './feed-page.component.scss',
 })
-export class FeedPageComponent implements OnInit {
+export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly publicationsService = inject(PublicationsService);
@@ -44,41 +44,91 @@ export class FeedPageComponent implements OnInit {
   protected readonly publishing = signal(false);
   protected readonly publishError = signal('');
   protected readonly feedError = signal('');
+  protected readonly loadingFeed = signal(false);
+  protected readonly hasMore = signal(true);
+  protected readonly totalPublications = signal(0);
   protected readonly likeError = signal('');
   protected readonly pendingLikes = signal<ReadonlySet<string>>(new Set());
   protected readonly composerOpen = signal(false);
   protected readonly posts = signal<FeedPost[]>([]);
+  private readonly pageSize = 5;
+  private page = 1;
+  private readonly likedPublicationIds = signal<ReadonlySet<string>>(new Set());
+  private observer?: IntersectionObserver;
+
+  @ViewChild('feedSentinel') private feedSentinel?: ElementRef<HTMLElement>;
 
   ngOnInit(): void {
-    this.publicationsService.list().subscribe({
-      next: (publications) => {
-        this.posts.set(publications.map((publication, index) => {
-          const author = publication.autor;
-          const name = `${author?.nombre ?? ''} ${author?.apellido ?? ''}`.trim();
-          const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '??';
-          return {
-            id: publication.id,
-            author: name || author?.nombreUsuario || 'Jugador',
-            handle: author?.nombreUsuario || 'jugador',
-            initials,
-            avatarTone: (['ember', 'stone', 'plum'] as const)[index % 3],
-            game: 'Comunidad',
-            title: publication.titulo,
-            message: publication.descripcion,
-            imageUrl: publication.imagenUrl || undefined,
-            timeLabel: this.formatTime(publication.createdAt),
-            createdAt: new Date(publication.createdAt).getTime() || Date.now(),
-            likes: publication.likes, liked: false, comments: 0, art: 'underworld',
-          };
-        }));
-        this.publicationsService.myLikes().subscribe({
-          next: ({ publicacionIds }) => {
-            const likedIds = new Set(publicacionIds);
-            this.posts.update((posts) => posts.map((post) => ({ ...post, liked: likedIds.has(String(post.id)) })));
-          },
-        });
+    this.loadNextPage();
+    this.publicationsService.myLikes().subscribe({
+      next: ({ publicacionIds }) => {
+        const likedIds = new Set(publicacionIds);
+        this.likedPublicationIds.set(likedIds);
+        this.posts.update((posts) => posts.map((post) => ({ ...post, liked: likedIds.has(String(post.id)) })));
       },
-      error: () => this.feedError.set('No se pudieron cargar las publicaciones. Recargá la página para intentar otra vez.'),
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) this.loadNextPage();
+      },
+      { rootMargin: '600px 0px' },
+    );
+    if (this.feedSentinel) this.observer.observe(this.feedSentinel.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+  }
+
+  protected loadNextPage(): void {
+    if (this.loadingFeed() || !this.hasMore()) return;
+
+    this.loadingFeed.set(true);
+    this.feedError.set('');
+    this.publicationsService.list(this.page, this.pageSize).subscribe({
+      next: (result) => {
+        const currentIds = new Set(this.posts().map((post) => String(post.id)));
+        const newPosts = result.items
+          .filter((publication) => !currentIds.has(publication.id))
+          .map((publication, index) => {
+            const author = publication.autor;
+            const name = `${author?.nombre ?? ''} ${author?.apellido ?? ''}`.trim();
+            const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '??';
+            return {
+              id: publication.id,
+              author: name || author?.nombreUsuario || 'Jugador',
+              handle: author?.nombreUsuario || 'jugador',
+              initials,
+              avatarTone: (['ember', 'stone', 'plum'] as const)[(this.posts().length + index) % 3],
+              game: 'Comunidad' as const,
+              title: publication.titulo,
+              message: publication.descripcion,
+              imageUrl: publication.imagenUrl || undefined,
+              timeLabel: this.formatTime(publication.createdAt),
+              createdAt: new Date(publication.createdAt).getTime() || Date.now(),
+              likes: publication.likes,
+              liked: this.likedPublicationIds().has(publication.id),
+              comments: 0,
+              art: 'underworld' as const,
+            };
+          });
+        this.posts.update((posts) => [...posts, ...newPosts]);
+        this.page = result.page + 1;
+        this.hasMore.set(result.hasMore);
+        this.loadingFeed.set(false);
+        this.totalPublications.set(result.total);
+        if (result.hasMore && this.feedSentinel && this.observer) {
+          this.observer.unobserve(this.feedSentinel.nativeElement);
+          this.observer.observe(this.feedSentinel.nativeElement);
+        }
+      },
+      error: () => {
+        this.feedError.set('No se pudieron cargar las publicaciones. Volvé a intentar.');
+        this.loadingFeed.set(false);
+      },
     });
   }
 

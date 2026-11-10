@@ -28,13 +28,21 @@ export interface Publication {
   autor: CreatedPublication['autor'] | null;
 }
 
+export interface PublicationPage {
+  items: Publication[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PublicationsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${API_BASE_URL}/api/publicaciones`;
 
-  list(): Observable<Publication[]> {
-    return this.http.get<Publication[]>(this.apiUrl);
+  list(page: number, limit = 5): Observable<PublicationPage> {
+    return this.http.get<PublicationPage>(this.apiUrl, { params: { page, limit } });
   }
 
   myLikes(): Observable<{ publicacionIds: string[] }> {
