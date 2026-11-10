@@ -1,1 +1,8 @@
 <router-outlet />
+@if (authService.sessionRemainingSeconds() !== null) {
+  <div class="session-countdown" role="timer" aria-label="Tiempo restante de sesión">
+    <span class="session-countdown-dot" aria-hidden="true"></span>
+    <span class="session-countdown-label">Sesión</span>
+    <strong>{{ sessionTimerText() }}</strong>
+  </div>
+}

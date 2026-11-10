@@ -702,6 +702,145 @@
   height: 17px;
 }
 
+.post-comments {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.post-comments:hover,
+.post-comments[aria-expanded='true'] {
+  color: var(--color-mist);
+}
+
+.comment-thread {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+  background: rgb(0 0 0 / 13%);
+}
+
+.comment-item {
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgb(255 255 255 / 7%);
+}
+
+.comment-item header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--color-smoke);
+  font-size: 10px;
+}
+
+.comment-item header strong {
+  color: var(--color-mist);
+  font-weight: 500;
+}
+
+.comment-item header time {
+  margin-left: auto;
+  color: var(--color-smoke);
+}
+
+.comment-item p {
+  margin: 7px 0 0;
+  color: var(--color-ash);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-status,
+.comment-error {
+  margin: 0;
+  color: var(--color-smoke);
+  font-size: 11px;
+}
+
+.comment-error {
+  color: #ff9999;
+}
+
+.comment-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.comment-form textarea {
+  min-height: 42px;
+  max-height: 120px;
+  flex: 1;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 7px;
+  outline: 0;
+  background: rgb(255 255 255 / 3%);
+  color: var(--color-mist);
+  font: inherit;
+  font-size: 12px;
+}
+
+.comment-form textarea:focus {
+  border-color: rgb(255 99 99 / 55%);
+}
+
+.comment-form button {
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--color-mist);
+  border-radius: 7px;
+  background: var(--color-mist);
+  color: var(--color-iron);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.comment-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.post-delete-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-smoke);
+  font-size: 10px;
+}
+
+.post-delete-actions button {
+  padding: 5px 8px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-smoke);
+  cursor: pointer;
+  font: inherit;
+}
+
+.post-delete-actions button:hover:not(:disabled) {
+  color: var(--color-mist);
+}
+
+.post-delete-actions .post-delete-confirm {
+  border-color: rgb(255 99 99 / 40%);
+  color: #ff9999;
+}
+
+.post-delete-actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .action-word {
   color: var(--color-ash);
 }
