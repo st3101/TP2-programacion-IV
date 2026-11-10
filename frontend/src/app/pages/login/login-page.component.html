@@ -87,7 +87,7 @@
             </div>
             <div class="register-field">
               <label class="field-label" for="imagenPerfil">Foto de perfil <span class="optional-label">OPCIONAL</span></label>
-              <div class="file-input-wrap"><input id="imagenPerfil" name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" /><small>{{ selectedImage() || 'JPG, PNG o WEBP. Máximo 10 MB.' }}</small></div>
+              <div class="file-input-wrap"><input id="imagenPerfil" name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" /><small>{{ selectedImage() || 'JPG, PNG o WEBP. Máximo 25 MB.' }}</small></div>
             </div>
           </div>
         } @else {

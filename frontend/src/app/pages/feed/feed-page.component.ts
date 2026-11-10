@@ -177,8 +177,8 @@ export class FeedPageComponent implements OnInit {
       if (input) input.value = '';
       return;
     }
-    if (image.size > 10 * 1024 * 1024) {
-      this.publishError.set('La imagen debe pesar 10 MB o menos.');
+    if (image.size > 25 * 1024 * 1024) {
+      this.publishError.set('La imagen debe pesar 25 MB o menos.');
       if (input) input.value = '';
       return;
     }

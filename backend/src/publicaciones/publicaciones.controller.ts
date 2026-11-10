@@ -24,7 +24,7 @@ export class PublicacionesController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('imagen', {
-      limits: { fileSize: 10 * 1024 * 1024 },
+      limits: { fileSize: 25 * 1024 * 1024 },
       fileFilter: (_request, file, callback) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.mimetype)) {
