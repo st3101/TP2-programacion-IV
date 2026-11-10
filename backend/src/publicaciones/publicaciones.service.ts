@@ -16,12 +16,18 @@ export class PublicacionesService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async findAll() {
-    const publicaciones = await this.publicacionModel
-      .find({ eliminadaEn: null })
-      .sort({ createdAt: -1 })
-      .populate('autorId', 'nombre apellido nombreUsuario imagenPerfilUrl')
-      .lean();
+  async findAll(page: number, limit: number) {
+    const filter = { eliminadaEn: null };
+    const [publicaciones, total] = await Promise.all([
+      this.publicacionModel
+        .find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate('autorId', 'nombre apellido nombreUsuario imagenPerfilUrl')
+        .lean(),
+      this.publicacionModel.countDocuments(filter),
+    ]);
 
     const likes = publicaciones.length
       ? await this.meGustaModel.aggregate<{ _id: Types.ObjectId; cantidad: number }>([
@@ -31,7 +37,7 @@ export class PublicacionesService {
       : [];
     const likesByPublication = new Map(likes.map((like) => [like._id.toString(), like.cantidad]));
 
-    return publicaciones.map((publicacion) => {
+    const items = publicaciones.map((publicacion) => {
       const autor = publicacion.autorId as unknown as {
         _id: Types.ObjectId;
         nombre: string;
@@ -56,6 +62,8 @@ export class PublicacionesService {
         } : null,
       };
     });
+
+    return { items, page, limit, total, hasMore: page * limit < total };
   }
 
   async findMyLikes(usuarioId: string) {

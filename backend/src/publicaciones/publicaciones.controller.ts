@@ -1,8 +1,9 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
+import { ListPublicacionesQueryDto } from './dto/list-publicaciones-query.dto';
 import { PublicacionesService } from './publicaciones.service';
 
 @Controller('publicaciones')
@@ -10,8 +11,8 @@ export class PublicacionesController {
   constructor(private readonly publicacionesService: PublicacionesService) {}
 
   @Get()
-  findAll() {
-    return this.publicacionesService.findAll();
+  findAll(@Query() query: ListPublicacionesQueryDto) {
+    return this.publicacionesService.findAll(query.page, query.limit);
   }
 
   @Get('me-gustas')
