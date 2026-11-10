@@ -12,8 +12,8 @@ export class AuthController {
   @Post('registro')
   @UseInterceptors(
     FileInterceptor('imagenPerfil', {
-      // Límite de 5 MB expresado en bytes.
-      limits: { fileSize: 5 * 1024 * 1024 },
+      // Límite de 10 MB expresado en bytes.
+      limits: { fileSize: 10 * 1024 * 1024 },
       fileFilter: (_request, file, callback) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.mimetype)) {

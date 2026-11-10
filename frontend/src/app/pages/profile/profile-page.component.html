@@ -45,7 +45,7 @@
             <label>Nombre de usuario<input name="nombreUsuario" type="text" minlength="3" maxlength="30" [value]="data.usuario.nombreUsuario" required /></label>
             <label>Fecha de nacimiento<input name="fechaNacimiento" type="date" [value]="dateInput(data.usuario.fechaNacimiento)" required /></label>
             <label class="field-wide">Descripción<textarea name="descripcion" maxlength="280" rows="3" placeholder="Contale algo a la comunidad">{{ data.usuario.descripcion }}</textarea><small>Hasta 280 caracteres.</small></label>
-            <label class="field-wide profile-file-input">Foto de perfil<input name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" /><small>{{ selectedImageName() || 'JPG, PNG o WEBP. Máximo 5 MB.' }}</small></label>
+            <label class="field-wide profile-file-input">Foto de perfil<input name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" /><small>{{ selectedImageName() || 'JPG, PNG o WEBP. Máximo 10 MB.' }}</small></label>
             <div class="form-actions field-wide">
               <button class="cancel-button" type="button" (click)="cancelEditing()">Cancelar</button>
               <button class="save-button" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar cambios' }}</button>

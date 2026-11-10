@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Publicacion } from '../database/schemas/publicacion.schema';
+import { MeGusta } from '../database/schemas/me-gusta.schema';
 import { Usuario } from '../database/schemas/usuario.schema';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
@@ -11,6 +12,7 @@ export class PublicacionesService {
   constructor(
     @InjectModel(Publicacion.name) private readonly publicacionModel: Model<Publicacion>,
     @InjectModel(Usuario.name) private readonly usuarioModel: Model<Usuario>,
+    @InjectModel(MeGusta.name) private readonly meGustaModel: Model<MeGusta>,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -20,6 +22,14 @@ export class PublicacionesService {
       .sort({ createdAt: -1 })
       .populate('autorId', 'nombre apellido nombreUsuario imagenPerfilUrl')
       .lean();
+
+    const likes = publicaciones.length
+      ? await this.meGustaModel.aggregate<{ _id: Types.ObjectId; cantidad: number }>([
+          { $match: { publicacionId: { $in: publicaciones.map((publicacion) => publicacion._id) } } },
+          { $group: { _id: '$publicacionId', cantidad: { $sum: 1 } } },
+        ])
+      : [];
+    const likesByPublication = new Map(likes.map((like) => [like._id.toString(), like.cantidad]));
 
     return publicaciones.map((publicacion) => {
       const autor = publicacion.autorId as unknown as {
@@ -36,6 +46,7 @@ export class PublicacionesService {
         descripcion: publicacion.descripcion,
         imagenUrl: publicacion.imagenUrl,
         createdAt: publicacion.createdAt,
+        likes: likesByPublication.get(publicacion._id.toString()) ?? 0,
         autor: autor ? {
           id: autor._id.toString(),
           nombre: autor.nombre,
@@ -45,6 +56,40 @@ export class PublicacionesService {
         } : null,
       };
     });
+  }
+
+  async findMyLikes(usuarioId: string) {
+    const likes = await this.meGustaModel.find({ usuarioId: new Types.ObjectId(usuarioId) }).select('publicacionId').lean();
+    return { publicacionIds: likes.map((like) => like.publicacionId.toString()) };
+  }
+
+  async toggleLike(usuarioId: string, publicationId: string) {
+    if (!Types.ObjectId.isValid(publicationId)) {
+      throw new BadRequestException('La publicación indicada no es válida.');
+    }
+
+    const publicacionObjectId = new Types.ObjectId(publicationId);
+    const publicacion = await this.publicacionModel.findOne({ _id: publicacionObjectId, eliminadaEn: null }).select('_id');
+    if (!publicacion) throw new NotFoundException('No se encontró la publicación.');
+
+    const usuarioObjectId = new Types.ObjectId(usuarioId);
+    const existingLike = await this.meGustaModel.findOneAndDelete({
+      usuarioId: usuarioObjectId,
+      publicacionId: publicacionObjectId,
+    });
+    let liked = false;
+    if (!existingLike) {
+      try {
+        await this.meGustaModel.create({ usuarioId: usuarioObjectId, publicacionId: publicacionObjectId });
+        liked = true;
+      } catch (error) {
+        if (!this.isDuplicateKeyError(error)) throw error;
+        liked = true;
+      }
+    }
+
+    const likes = await this.meGustaModel.countDocuments({ publicacionId: publicacionObjectId });
+    return { liked, likes };
   }
 
   async create(usuarioId: string, dto: CreatePublicacionDto, image?: { buffer: Buffer; mimetype: string }) {
@@ -83,5 +128,9 @@ export class PublicacionesService {
         imagenPerfilUrl: usuario.imagenPerfilUrl,
       },
     };
+  }
+
+  private isDuplicateKeyError(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === 11000;
   }
 }

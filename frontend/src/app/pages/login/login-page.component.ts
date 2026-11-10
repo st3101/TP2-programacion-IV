@@ -51,9 +51,9 @@ export class LoginPageComponent {
       this.message.set('La foto debe estar en formato JPG, PNG o WEBP.');
       return;
     }
-    // El navegador informa el tamaño del archivo en bytes; 5 MB son 5 × 1024 × 1024 bytes.
-    if (image && image.size > 5 * 1024 * 1024) {
-      this.message.set('La foto debe pesar 5 MB o menos.');
+    // El navegador informa el tamaño del archivo en bytes; 10 MB son 10 × 1024 × 1024 bytes.
+    if (image && image.size > 10 * 1024 * 1024) {
+      this.message.set('La foto debe pesar 10 MB o menos.');
       return;
     }
 

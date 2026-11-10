@@ -60,6 +60,7 @@
 
     <section class="post-list" aria-label="Publicaciones de la comunidad">
       @if (feedError()) { <p class="publish-error" role="alert">{{ feedError() }}</p> }
+      @if (likeError()) { <p class="publish-error" role="alert">{{ likeError() }}</p> }
       @for (post of visiblePosts(); track post.id) {
         <article class="post-card">
           <header class="post-header">
@@ -116,6 +117,7 @@
               [class.like-button--liked]="post.liked"
               [attr.aria-pressed]="post.liked"
               [attr.aria-label]="post.liked ? 'Quitar Me gusta' : 'Dar Me gusta'"
+              [disabled]="isLikePending(post.id)"
               type="button"
               (click)="toggleLike(post.id)"
             >
