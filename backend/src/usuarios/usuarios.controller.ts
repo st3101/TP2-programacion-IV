@@ -1,5 +1,5 @@
-import { BadRequestException, Body, Controller, Get, Patch, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Get, Patch, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -17,16 +17,7 @@ export class UsuariosController {
 
   @Patch()
   @UseInterceptors(
-    FileInterceptor('imagenPerfil', {
-      limits: { fileSize: 25 * 1024 * 1024 },
-      fileFilter: (_request, file, callback) => {
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
-          callback(new BadRequestException('La foto debe ser JPG, PNG o WEBP.'), false);
-          return;
-        }
-        callback(null, true);
-      },
-    }),
+    createImageFileInterceptor('imagenPerfil', 'La foto debe ser JPG, PNG o WEBP.'),
   )
   updateMyProfile(
     @Req() request: AuthenticatedRequest,

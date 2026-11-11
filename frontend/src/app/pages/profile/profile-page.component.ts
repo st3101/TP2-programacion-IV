@@ -4,11 +4,13 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { MyProfileResponse, ProfileService } from '../../auth/profile.service';
+import { PublicationComment } from '../../auth/publications.service';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { PublicationDetailModalComponent, PublicationDetailPost } from '../../shared/publication-detail-modal/publication-detail-modal.component';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [DatePipe, RouterLink, NavbarComponent],
+  imports: [DatePipe, RouterLink, NavbarComponent, PublicationDetailModalComponent],
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.scss',
 })
@@ -24,6 +26,7 @@ export class ProfilePageComponent implements OnInit {
   protected readonly message = signal('');
   protected readonly selectedImage = signal<File | null>(null);
   protected readonly selectedImageName = signal('');
+  protected readonly selectedPublication = signal<{ post: PublicationDetailPost; comments: PublicationComment[] } | null>(null);
 
   ngOnInit(): void {
     this.loadProfile();
@@ -48,6 +51,34 @@ export class ProfilePageComponent implements OnInit {
 
   protected initials(nombre: string, apellido: string): string {
     return `${nombre.charAt(0)}${apellido.charAt(0)}`.toLocaleUpperCase('es-AR');
+  }
+
+  protected openPublication(post: MyProfileResponse['publicaciones'][number]): void {
+    const user = this.profile()?.usuario;
+    if (!user) return;
+    this.selectedPublication.set({
+      post: {
+        id: post.id,
+        title: post.titulo,
+        message: post.descripcion,
+        imageUrl: post.imagenUrl || undefined,
+        game: 'Comunidad',
+        author: `${user.nombre} ${user.apellido}`,
+        handle: user.nombreUsuario,
+        initials: this.initials(user.nombre, user.apellido),
+        likes: 0,
+        comments: post.comentarios.length,
+        timeLabel: new Date(post.createdAt).toLocaleString('es-AR'),
+      },
+      comments: post.comentarios.map((comment) => ({
+        ...comment,
+        autor: { ...comment.autor, imagenPerfilUrl: '' },
+      })),
+    });
+  }
+
+  protected closePublication(): void {
+    this.selectedPublication.set(null);
   }
 
   protected dateInput(value: string): string {

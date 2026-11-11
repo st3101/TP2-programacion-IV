@@ -1,0 +1,83 @@
+<div class="publication-modal-backdrop" role="presentation" (click)="closed.emit()" (keydown.escape)="closed.emit()" tabindex="-1">
+  <section
+    class="publication-modal"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'Publicación: ' + post.title"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="publication-detail-close" type="button" (click)="closed.emit()" aria-label="Cerrar publicación">×</button>
+    <div class="publication-detail-media">
+      @if (post.imageUrl) {
+        <img [src]="post.imageUrl" [alt]="'Imagen de la publicación: ' + post.title" loading="eager" decoding="async" />
+      } @else {
+        <div class="publication-detail-placeholder" aria-hidden="true">
+          <span>LOBBY</span>
+          <strong>{{ post.game }}</strong>
+        </div>
+      }
+    </div>
+
+    <div class="publication-detail-content">
+      <header class="publication-detail-header">
+        <div>
+          <p class="detail-overline">PUBLICACIÓN DE LA COMUNIDAD</p>
+          <h2>Detalle de publicación</h2>
+        </div>
+      </header>
+
+      <div class="publication-detail-author">
+        <span class="detail-avatar">{{ post.initials }}</span>
+        <div>
+          <strong>{{ post.author }}</strong>
+          <span>&#64;{{ post.handle }} · {{ post.timeLabel }}</span>
+        </div>
+      </div>
+
+      <article class="publication-detail-copy">
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.message }}</p>
+      </article>
+
+      <p class="publication-detail-counts">{{ post.likes }} Me gusta · {{ post.comments }} comentarios</p>
+
+      <section class="publication-detail-comments" [attr.aria-label]="'Comentarios de ' + post.title">
+        <h3>Comentarios</h3>
+        @if (loading) {
+          <p class="comment-status">Cargando comentarios...</p>
+        }
+        @if (error) {
+          <p class="comment-error" role="alert">{{ error }}</p>
+        }
+        @for (comment of comments; track comment.id) {
+          <article class="comment-item">
+            <header>
+              <strong>{{ comment.autor ? comment.autor.nombre + ' ' + comment.autor.apellido : 'Usuario' }}</strong>
+              @if (comment.autor) { <span>&#64;{{ comment.autor.nombreUsuario }}</span> }
+              <time>{{ commentTime(comment.createdAt) }}</time>
+            </header>
+            <p>{{ comment.mensaje }}</p>
+          </article>
+        } @empty {
+          @if (!loading) {
+            <p class="comment-status">Todavía no hay comentarios. ¡Sé el primero!</p>
+          }
+        }
+      </section>
+
+      <form class="comment-form detail-comment-form" (submit)="$event.preventDefault(); commentSubmitted.emit()">
+        <label class="visually-hidden" [for]="'detail-comment-' + post.id">Escribir un comentario</label>
+        <textarea
+          [id]="'detail-comment-' + post.id"
+          maxlength="3000"
+          placeholder="Escribí un comentario..."
+          [value]="draft"
+          (input)="updateDraft($event)"
+        ></textarea>
+        <button type="submit" [disabled]="!draft.trim() || submitting || loading">
+          {{ submitting ? 'Enviando...' : 'Comentar' }}
+        </button>
+      </form>
+    </div>
+  </section>
+</div>

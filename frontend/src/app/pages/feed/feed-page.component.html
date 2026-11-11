@@ -95,27 +95,36 @@
             <p>{{ post.message }}</p>
           </div>
 
-          @if (post.imageUrl) {
-            <img class="uploaded-post-image" [src]="post.imageUrl" alt="Imagen adjunta a la publicación" />
-          } @else {
           <div
-            class="post-art"
-            [class.post-art--underworld]="post.art === 'underworld'"
-            [class.post-art--afterlight]="post.art === 'afterlight'"
-            [class.post-art--newdawn]="post.art === 'newdawn'"
-            role="img"
-            [attr.aria-label]="'Imagen de muestra para ' + post.game"
+            class="post-media-open"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Ver publicación completa: ' + post.title"
+            (click)="openPostDetails(post)"
+            (keydown.enter)="openPostDetails(post)"
+            (keydown.space)="$event.preventDefault(); openPostDetails(post)"
           >
-            <div class="art-grid" aria-hidden="true"></div>
-            <div class="art-orb" aria-hidden="true"></div>
-            <div class="art-structure" aria-hidden="true"></div>
-            <div class="art-caption">
-              <span class="art-overline">CAPTURA DE LA PARTIDA</span>
-              <span class="art-game-title">{{ post.game }}</span>
-            </div>
-              <span class="art-index" aria-hidden="true">LOBBY / 0{{ post.id.toString().slice(-1) }}</span>
-          </div>
+            @if (post.imageUrl) {
+              <img class="uploaded-post-image" [src]="post.imageUrl" alt="Imagen adjunta a la publicación" loading="lazy" decoding="async" />
+            } @else {
+              <div
+                class="post-art"
+                [class.post-art--underworld]="post.art === 'underworld'"
+                [class.post-art--afterlight]="post.art === 'afterlight'"
+                [class.post-art--newdawn]="post.art === 'newdawn'"
+                aria-hidden="true"
+              >
+                <div class="art-grid"></div>
+                <div class="art-orb"></div>
+                <div class="art-structure"></div>
+                <div class="art-caption">
+                  <span class="art-overline">CAPTURA DE LA PARTIDA</span>
+                  <span class="art-game-title">{{ post.game }}</span>
+                </div>
+                <span class="art-index">LOBBY / 0{{ post.id.toString().slice(-1) }}</span>
+              </div>
           }
+          </div>
 
           <footer class="post-footer">
             <button
@@ -271,4 +280,18 @@
     </div>
     }
   </aside>
+
+  @if (selectedPost(); as detailPost) {
+    <app-publication-detail-modal
+      [post]="detailPost"
+      [comments]="commentsFor(detailPost.id)"
+      [loading]="isCommentsLoading(detailPost.id)"
+      [error]="commentError(detailPost.id)"
+      [draft]="commentText(detailPost.id)"
+      [submitting]="isCommentSubmitting(detailPost.id)"
+      (closed)="closePostDetails()"
+      (draftChanged)="setCommentDraft(detailPost.id, $event)"
+      (commentSubmitted)="submitComment(detailPost.id)"
+    />
+  }
 </div>

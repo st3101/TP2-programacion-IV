@@ -65,7 +65,8 @@
 .post-meta time, .comment-row time { color: #68696b; font-size: 9px; letter-spacing: 0; }
 .post-card h3 { margin: 14px 0 6px; font-size: 16px; font-weight: 550; }
 .post-description { margin: 0; color: #b5b4b4; font-size: 12px; line-height: 1.65; white-space: pre-wrap; }
-.post-image { display: block; max-width: 100%; max-height: 300px; margin-top: 14px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 8px; object-fit: cover; }
+.post-image-open { display: block; width: fit-content; max-width: 100%; margin: 14px auto 0; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.post-image { display: block; width: auto; height: auto; max-width: 100%; max-height: 300px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 8px; object-fit: contain; object-position: center; }
 .comments-heading { margin-top: 17px; padding-top: 13px; border-top: 1px solid rgb(255 255 255 / 8%); }
 .comments-heading span:last-child { font-family: var(--font-ui); font-size: 9px; letter-spacing: 0; }
 .comments-list { display: grid; gap: 11px; margin-top: 12px; }

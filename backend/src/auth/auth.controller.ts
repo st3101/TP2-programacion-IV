@@ -1,6 +1,6 @@
-import { BadRequestException, Body, Controller, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import type { Response } from 'express';
+import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -11,18 +11,10 @@ export class AuthController {
 
   @Post('registro')
   @UseInterceptors(
-    FileInterceptor('imagenPerfil', {
-      // Límite de 25 MB expresado en bytes.
-      limits: { fileSize: 25 * 1024 * 1024 },
-      fileFilter: (_request, file, callback) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        if (!allowedTypes.includes(file.mimetype)) {
-          callback(new BadRequestException('La foto debe estar en formato JPG, PNG o WEBP.'), false);
-          return;
-        }
-        callback(null, true);
-      },
-    }),
+    createImageFileInterceptor(
+      'imagenPerfil',
+      'La foto debe estar en formato JPG, PNG o WEBP.',
+    ),
   )
   register(
     @Body() registerDto: RegisterDto,
