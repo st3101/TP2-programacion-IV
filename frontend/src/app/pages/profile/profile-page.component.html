@@ -66,7 +66,11 @@
               <header class="post-meta"><span>PUBLICACIÓN</span><time>{{ post.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</time></header>
               <h3>{{ post.titulo }}</h3>
               <p class="post-description">{{ post.descripcion }}</p>
-              @if (post.imagenUrl) { <img class="post-image" [src]="post.imagenUrl" alt="Imagen de la publicación" /> }
+              @if (post.imagenUrl) {
+                <button class="post-image-open" type="button" (click)="openPublication(post)" [attr.aria-label]="'Ver publicación completa: ' + post.titulo">
+                  <img class="post-image" [src]="post.imagenUrl" alt="Imagen de la publicación" loading="lazy" decoding="async" />
+                </button>
+              }
               <div class="comments-heading"><span>CONVERSACIÓN</span><span>{{ post.comentarios.length }} comentarios</span></div>
               @if (post.comentarios.length) {
                 <div class="comments-list">
@@ -100,4 +104,12 @@
       <p class="feedback-message" role="status">{{ message() }}</p>
     }
   </section>
+
+  @if (selectedPublication(); as selected) {
+    <app-publication-detail-modal
+      [post]="selected.post"
+      [comments]="selected.comments"
+      (closed)="closePublication()"
+    />
+  }
 </main>

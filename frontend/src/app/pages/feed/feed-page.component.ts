@@ -5,6 +5,7 @@ import { AuthService } from '../../auth/auth.service';
 import { ProfileService } from '../../auth/profile.service';
 import { PublicationComment, PublicationsService } from '../../auth/publications.service';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { PublicationDetailModalComponent } from '../../shared/publication-detail-modal/publication-detail-modal.component';
 
 type FeedSort = 'recent' | 'popular';
 
@@ -29,7 +30,7 @@ interface FeedPost {
 
 @Component({
   selector: 'app-feed-page',
-  imports: [NavbarComponent],
+  imports: [NavbarComponent, PublicationDetailModalComponent],
   templateUrl: './feed-page.component.html',
   styleUrl: './feed-page.component.scss',
 })
@@ -55,6 +56,7 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
   protected readonly pendingLikes = signal<ReadonlySet<string>>(new Set());
   protected readonly composerOpen = signal(false);
   protected readonly posts = signal<FeedPost[]>([]);
+  protected readonly selectedPost = signal<FeedPost | null>(null);
   protected readonly currentUserId = signal('');
   protected readonly confirmDeleteId = signal('');
   protected readonly deletingPostId = signal('');
@@ -265,6 +267,15 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
     return this.formatTime(value);
   }
 
+  protected openPostDetails(post: FeedPost): void {
+    this.selectedPost.set(post);
+    this.ensureCommentsLoaded(String(post.id));
+  }
+
+  protected closePostDetails(): void {
+    this.selectedPost.set(null);
+  }
+
   protected toggleCommentThread(postId: number | string): void {
     const id = String(postId);
     const open = new Set(this.openCommentThreads());
@@ -276,13 +287,19 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
 
     open.add(id);
     this.openCommentThreads.set(open);
-    if (this.commentsByPost()[id] !== undefined || this.isCommentsLoading(id)) return;
+    this.ensureCommentsLoaded(id);
+  }
 
+  private ensureCommentsLoaded(id: string): void {
+    if (this.commentsByPost()[id] !== undefined || this.isCommentsLoading(id)) return;
     this.setCommentLoading(id, true);
     this.publicationsService.listComments(id).subscribe({
       next: (comments) => {
         this.commentsByPost.update((current) => ({ ...current, [id]: comments }));
         this.posts.update((posts) => posts.map((post) => String(post.id) === id ? { ...post, comments: comments.length } : post));
+        this.selectedPost.update((post) => post && String(post.id) === id
+          ? { ...post, comments: comments.length }
+          : post);
         this.setCommentError(id, '');
       },
       error: () => {
@@ -296,8 +313,12 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
   protected updateCommentDraft(postId: number | string, event: Event): void {
     const input = event.target;
     if (!(input instanceof HTMLTextAreaElement)) return;
+    this.setCommentDraft(postId, input.value);
+  }
+
+  protected setCommentDraft(postId: number | string, value: string): void {
     const id = String(postId);
-    this.commentDrafts.update((drafts) => ({ ...drafts, [id]: input.value }));
+    this.commentDrafts.update((drafts) => ({ ...drafts, [id]: value }));
   }
 
   protected submitComment(postId: number | string): void {
@@ -314,6 +335,9 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
         this.posts.update((posts) => posts.map((post) => String(post.id) === id
           ? { ...post, comments: post.comments + 1 }
           : post));
+        this.selectedPost.update((post) => post && String(post.id) === id
+          ? { ...post, comments: post.comments + 1 }
+          : post);
       },
       error: (error: HttpErrorResponse) => {
         const detail = error.error?.message;

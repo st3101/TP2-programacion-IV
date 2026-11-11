@@ -1,5 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
@@ -48,17 +48,7 @@ export class PublicacionesController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FileInterceptor('imagen', {
-      limits: { fileSize: 25 * 1024 * 1024 },
-      fileFilter: (_request, file, callback) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        if (!allowedTypes.includes(file.mimetype)) {
-          callback(new BadRequestException('La imagen debe ser JPG, PNG o WEBP.'), false);
-          return;
-        }
-        callback(null, true);
-      },
-    }),
+    createImageFileInterceptor('imagen', 'La imagen debe ser JPG, PNG o WEBP.'),
   )
   create(
     @Req() request: AuthenticatedRequest,
