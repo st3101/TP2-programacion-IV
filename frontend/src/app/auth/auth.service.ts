@@ -90,7 +90,7 @@ export class AuthService {
 
   private startSessionExpiry(): void {
     if (typeof localStorage === 'undefined') return;
-    const expiresAt = Date.now() + 30 * 60 * 1000;
+    const expiresAt = Date.now() + 30 * 1000;
     localStorage.setItem(this.sessionExpiryKey, String(expiresAt));
     this.scheduleSessionExpiry();
   }

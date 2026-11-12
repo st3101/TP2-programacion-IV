@@ -80,11 +80,21 @@ export class LoginPageComponent {
       next: () => this.router.navigateByUrl('/feed'),
       error: (error: HttpErrorResponse) => {
         const detail = error.error?.message;
+        const serverMessage = typeof detail === 'string' ? detail : '';
+        const esAvisoDeDatoDuplicado = /correo|nombre de usuario/i.test(serverMessage)
+          && /ocupad|registrad|ya existe/i.test(serverMessage);
+
+        if (!this.isRegister && esAvisoDeDatoDuplicado) {
+          this.message.set('No se pudo iniciar sesión. Revisá tus datos e intentá de nuevo.');
+          this.submitting.set(false);
+          return;
+        }
+
         this.message.set(
           Array.isArray(detail)
             ? detail.join(' ')
-            : typeof detail === 'string'
-              ? detail
+            : serverMessage
+              ? serverMessage
               : 'No se pudo conectar con el servidor. Revisá que el backend esté iniciado.',
         );
         this.submitting.set(false);
