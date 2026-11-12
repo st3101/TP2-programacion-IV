@@ -12,7 +12,7 @@ import { PublicationDetailModalComponent, PublicationDetailPost } from '../../sh
   selector: 'app-profile-page',
   imports: [DatePipe, RouterLink, NavbarComponent, PublicationDetailModalComponent],
   templateUrl: './profile-page.component.html',
-  styleUrl: './profile-page.component.scss',
+  styleUrl: './profile-page.component.css',
 })
 export class ProfilePageComponent implements OnInit {
   private readonly profileService = inject(ProfileService);

@@ -28,7 +28,10 @@ export class UsuariosService {
 
     const comentarios = publicaciones.length
       ? await this.comentarioModel
-          .find({ publicacionId: { $in: publicaciones.map((publicacion) => publicacion._id) } })
+          .find({
+            publicacionId: { $in: publicaciones.map((publicacion) => publicacion._id) },
+            eliminadaEn: null,
+          })
           .sort({ createdAt: 1 })
           .populate('autorId', 'nombre apellido nombreUsuario')
           .lean()

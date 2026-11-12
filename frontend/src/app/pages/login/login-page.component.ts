@@ -7,7 +7,7 @@ import { AuthService } from '../../auth/auth.service';
   selector: 'app-login-page',
   imports: [RouterLink],
   templateUrl: './login-page.component.html',
-  styleUrl: './login-page.component.scss',
+  styleUrl: './login-page.component.css',
 })
 export class LoginPageComponent {
   private readonly authService = inject(AuthService);

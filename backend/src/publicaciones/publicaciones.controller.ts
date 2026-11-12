@@ -7,6 +7,7 @@ import { CreateComentarioDto } from './dto/create-comentario.dto';
 import { ListPublicacionesQueryDto } from './dto/list-publicaciones-query.dto';
 import { PublicacionesService } from './publicaciones.service';
 
+// Controlador para manejar las rutas relacionadas con publicaciones, incluyendo creación, eliminación, comentarios y "me gusta".
 @Controller('publicaciones')
 export class PublicacionesController {
   constructor(private readonly publicacionesService: PublicacionesService) {}

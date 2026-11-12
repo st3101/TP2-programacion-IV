@@ -32,7 +32,7 @@ interface FeedPost {
   selector: 'app-feed-page',
   imports: [NavbarComponent, PublicationDetailModalComponent],
   templateUrl: './feed-page.component.html',
-  styleUrl: './feed-page.component.scss',
+  styleUrl: './feed-page.component.css',
 })
 export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
   private readonly authService = inject(AuthService);
