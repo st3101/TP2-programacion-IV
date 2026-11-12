@@ -7,7 +7,6 @@
       <span class="brand-mark" aria-hidden="true"><span></span></span>
       <span class="brand-name">lobby<span>.</span></span>
     </a>
-    <a class="explore-link" routerLink="/feed">Explorar la comunidad <span aria-hidden="true">↗</span></a>
   </header>
 
   <section class="login-layout" [class.login-layout--register]="isRegister" aria-labelledby="login-title">
@@ -108,7 +107,9 @@
 
       <div class="form-divider"><span></span><small>{{ isRegister ? '¿YA TENÉS CUENTA?' : '¿PRIMERA VEZ POR ACÁ?' }}</small><span></span></div>
       <p class="signup-prompt">{{ isRegister ? 'Ya sos parte?' : 'Todavía no tenés cuenta?' }} <a class="text-link" [routerLink]="isRegister ? '/login' : '/registro'">{{ isRegister ? 'Iniciá sesión' : 'Unite al lobby' }}</a></p>
-      <p class="terms">Al continuar, aceptás nuestros <a href="#" (click)="$event.preventDefault()">Términos</a> y <a href="#" (click)="$event.preventDefault()">Política de privacidad</a>.</p>
+      @if (isRegister) {
+        <p class="terms">Al continuar, aceptás nuestros <a href="#" (click)="$event.preventDefault()">Términos</a> y <a href="#" (click)="$event.preventDefault()">Política de privacidad</a>.</p>
+      }
     </div>
   </section>
 

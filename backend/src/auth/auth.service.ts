@@ -23,12 +23,15 @@ export class AuthService {
 
     const correo = dto.correo.trim().toLowerCase();
     const nombreUsuario = dto.nombreUsuario.trim().toLowerCase();
-    const existingUser = await this.usuarioModel.findOne({
-      $or: [{ correo }, { nombreUsuario }],
-    });
+    const [correoOcupado, nombreUsuarioOcupado] = await Promise.all([
+      this.usuarioModel.exists({ correo }),
+      this.usuarioModel.exists({ nombreUsuario }),
+    ]);
 
-    if (existingUser) {
-      throw new ConflictException('Ese correo o nombre de usuario ya está registrado.');
+    if (correoOcupado || nombreUsuarioOcupado) {
+      throw new ConflictException(
+        this.registrationConflictMessage(Boolean(correoOcupado), Boolean(nombreUsuarioOcupado)),
+      );
     }
 
     let uploadedImage: { url: string; publicId: string } | undefined;
@@ -56,7 +59,14 @@ export class AuthService {
     } catch (error) {
       if (uploadedImage) await this.cloudinaryService.deleteImage(uploadedImage.publicId).catch(() => undefined);
       if (this.isDuplicateKeyError(error)) {
-        throw new ConflictException('Ese correo o nombre de usuario ya está registrado.');
+        // El índice único de MongoDB también protege contra dos registros simultáneos.
+        const [correoOcupado, nombreUsuarioOcupado] = await Promise.all([
+          this.usuarioModel.exists({ correo }),
+          this.usuarioModel.exists({ nombreUsuario }),
+        ]);
+        throw new ConflictException(
+          this.registrationConflictMessage(Boolean(correoOcupado), Boolean(nombreUsuarioOcupado)),
+        );
       }
       throw error;
     }
@@ -97,5 +107,14 @@ export class AuthService {
 
   private isDuplicateKeyError(error: unknown): boolean {
     return typeof error === 'object' && error !== null && 'code' in error && error.code === 11000;
+  }
+
+  private registrationConflictMessage(correoOcupado: boolean, nombreUsuarioOcupado: boolean): string {
+    if (correoOcupado && nombreUsuarioOcupado) {
+      return 'El correo y el nombre de usuario ya están ocupados. Elegí otros.';
+    }
+    if (correoOcupado) return 'Ese correo ya está registrado. Probá con otro.';
+    if (nombreUsuarioOcupado) return 'Ese nombre de usuario ya está ocupado. Elegí otro.';
+    return 'No se pudo crear la cuenta porque el correo o el nombre de usuario ya están ocupados.';
   }
 }
