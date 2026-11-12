@@ -12,6 +12,7 @@ import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 @Injectable()
 export class PublicacionesService {
   constructor(
+    // Inyecta los modelos de Mongoose para las entidades Publicacion, Usuario, MeGusta y Comentario, así como el servicio de Cloudinary para manejar imágenes.
     @InjectModel(Publicacion.name) private readonly publicacionModel: Model<Publicacion>,
     @InjectModel(Usuario.name) private readonly usuarioModel: Model<Usuario>,
     @InjectModel(MeGusta.name) private readonly meGustaModel: Model<MeGusta>,
@@ -19,6 +20,7 @@ export class PublicacionesService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  //Busca todas las publicaciones con paginacion ordenadas
   async findAll(
     offset: number,
     limit: number,
@@ -55,6 +57,7 @@ export class PublicacionesService {
             from: 'me_gusta',
             localField: '_id',
             foreignField: 'publicacionId',
+            pipeline: [{ $match: { eliminadaEn: null } }],
             as: 'likesData',
           },
         },
@@ -63,6 +66,7 @@ export class PublicacionesService {
             from: 'comentarios',
             localField: '_id',
             foreignField: 'publicacionId',
+            pipeline: [{ $match: { eliminadaEn: null } }],
             as: 'commentsData',
           },
         },
@@ -114,13 +118,14 @@ export class PublicacionesService {
     return { items, offset, limit, total, hasMore: offset + items.length < total };
   }
 
+  //Busca los comentarios de una publicación específica, verificando que la publicación exista y no esté eliminada.
   async findComments(publicationId: string) {
     const publicationObjectId = this.toPublicationObjectId(publicationId);
     const publicationExists = await this.publicacionModel.exists({ _id: publicationObjectId, eliminadaEn: null });
     if (!publicationExists) throw new NotFoundException('No se encontró la publicación.');
 
     const comments = await this.comentarioModel
-      .find({ publicacionId: publicationObjectId })
+      .find({ publicacionId: publicationObjectId, eliminadaEn: null })
       .sort({ createdAt: 1, _id: 1 })
       .populate('autorId', 'nombre apellido nombreUsuario imagenPerfilUrl')
       .lean();
@@ -148,6 +153,7 @@ export class PublicacionesService {
     });
   }
 
+  //Crea un comentario en una publicacion
   async createComment(usuarioId: string, publicationId: string, dto: CreateComentarioDto) {
     const publicationObjectId = this.toPublicationObjectId(publicationId);
     const publicationExists = await this.publicacionModel.exists({ _id: publicationObjectId, eliminadaEn: null });
@@ -177,11 +183,16 @@ export class PublicacionesService {
     };
   }
 
+  //busca los likes de un usuario específico, devolviendo los IDs de las publicaciones a las que le ha dado "Me gusta".
   async findMyLikes(usuarioId: string) {
-    const likes = await this.meGustaModel.find({ usuarioId: new Types.ObjectId(usuarioId) }).select('publicacionId').lean();
+    const likes = await this.meGustaModel
+      .find({ usuarioId: new Types.ObjectId(usuarioId), eliminadaEn: null })
+      .select('publicacionId')
+      .lean();
     return { publicacionIds: likes.map((like) => like.publicacionId.toString()) };
   }
 
+  //Agrega un megusta a una publicación específica
   async addLike(usuarioId: string, publicationId: string) {
     if (!Types.ObjectId.isValid(publicationId)) {
       throw new BadRequestException('La publicación indicada no es válida.');
@@ -193,15 +204,21 @@ export class PublicacionesService {
 
     const usuarioObjectId = new Types.ObjectId(usuarioId);
     try {
-      await this.meGustaModel.create({ usuarioId: usuarioObjectId, publicacionId: publicacionObjectId });
+      await this.meGustaModel.updateOne(
+        { usuarioId: usuarioObjectId, publicacionId: publicacionObjectId },
+        { $set: { eliminadaEn: null } },
+        { upsert: true },
+      );
     } catch (error) {
+      // Dos peticiones simultáneas pueden intentar crear el mismo like.
       if (!this.isDuplicateKeyError(error)) throw error;
     }
 
-    const likes = await this.meGustaModel.countDocuments({ publicacionId: publicacionObjectId });
+    const likes = await this.meGustaModel.countDocuments({ publicacionId: publicacionObjectId, eliminadaEn: null });
     return { liked: true, likes };
   }
 
+//Elimina un megusta de una publicación específica
   async removeLike(usuarioId: string, publicationId: string) {
     if (!Types.ObjectId.isValid(publicationId)) {
       throw new BadRequestException('La publicación indicada no es válida.');
@@ -212,16 +229,18 @@ export class PublicacionesService {
     if (!publicacion) throw new NotFoundException('No se encontró la publicación.');
 
     const usuarioObjectId = new Types.ObjectId(usuarioId);
-    const existingLike = await this.meGustaModel.findOneAndDelete({
+    const existingLike = await this.meGustaModel.findOneAndUpdate({
       usuarioId: usuarioObjectId,
       publicacionId: publicacionObjectId,
-    });
+      eliminadaEn: null,
+    }, { $set: { eliminadaEn: new Date() } });
     if (!existingLike) throw new NotFoundException('No habías dado Me gusta a esta publicación.');
 
-    const likes = await this.meGustaModel.countDocuments({ publicacionId: publicacionObjectId });
+    const likes = await this.meGustaModel.countDocuments({ publicacionId: publicacionObjectId, eliminadaEn: null });
     return { liked: false, likes };
   }
 
+  //Elimina una publicación propia y eliminando los megusta
   async deleteOwn(usuarioId: string, publicationId: string) {
     if (!Types.ObjectId.isValid(publicationId)) {
       throw new BadRequestException('La publicación indicada no es válida.');
@@ -238,20 +257,13 @@ export class PublicacionesService {
       { _id: publicationObjectId, autorId: new Types.ObjectId(usuarioId), eliminadaEn: null },
       { $set: { eliminadaEn: new Date() } },
       { new: true },
-    ).select('imagenPublicId');
+    ).select('_id');
     if (!deleted) throw new NotFoundException('La publicación ya no existe.');
-
-    await Promise.all([
-      this.meGustaModel.deleteMany({ publicacionId: publicationObjectId }),
-      this.comentarioModel.deleteMany({ publicacionId: publicationObjectId }),
-      deleted.imagenPublicId
-        ? this.cloudinaryService.deleteImage(deleted.imagenPublicId).catch(() => undefined)
-        : Promise.resolve(),
-    ]);
 
     return { message: 'Publicación eliminada.' };
   }
 
+  //Crea una nueva publicación, subiendo la imagen a Cloudinary 
   async create(usuarioId: string, dto: CreatePublicacionDto, image?: { buffer: Buffer; mimetype: string }) {
     const usuario = await this.usuarioModel.findById(usuarioId).select('nombre apellido nombreUsuario imagenPerfilUrl');
     if (!usuario) throw new NotFoundException('No se encontró el usuario de la sesión.');
@@ -290,10 +302,12 @@ export class PublicacionesService {
     };
   }
 
+  // Verifica si un error es un error de clave duplicada (código 11000) en MongoDB.
   private isDuplicateKeyError(error: unknown): boolean {
     return typeof error === 'object' && error !== null && 'code' in error && error.code === 11000;
   }
 
+  //transforma un ID de publicación en un ObjectId de Mongoose, lanzando una excepción si el ID no es válido.
   private toPublicationObjectId(publicationId: string): Types.ObjectId {
     if (!Types.ObjectId.isValid(publicationId)) {
       throw new BadRequestException('La publicación indicada no es válida.');

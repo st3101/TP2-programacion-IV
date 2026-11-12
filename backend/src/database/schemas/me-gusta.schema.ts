@@ -12,6 +12,9 @@ export class MeGusta {
 
   @Prop({ type: Types.ObjectId, ref: Publicacion.name, required: true })
   publicacionId!: Types.ObjectId;
+
+  @Prop({ type: Date, default: null })
+  eliminadaEn!: Date | null;
 }
 
 export const MeGustaSchema = SchemaFactory.createForClass(MeGusta);

@@ -12,6 +12,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     ConfigModule,
     CloudinaryModule,
     MongooseModule.forFeature([{ name: Usuario.name, schema: UsuarioSchema }]),
+    //Configura jwt para que se pueda inyectar en el servicio de autenticación
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
