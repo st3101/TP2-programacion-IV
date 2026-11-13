@@ -560,14 +560,6 @@
   font-size: 11px;
 }
 
-.uploaded-post-image {
-  display: block;
-  width: 100%;
-  max-height: 560px;
-  border-radius: 9px;
-  object-fit: cover;
-}
-
 .publish-button {
   display: inline-flex;
   min-height: 40px;
