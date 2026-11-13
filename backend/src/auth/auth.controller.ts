@@ -37,12 +37,13 @@ export class AuthController {
 
   private async createSessionCookie(
     sessionPromise: ReturnType<AuthService['login']>,
-    response?: Response,
+     response?: Response,
   ) {
     const session = await sessionPromise;
     response?.cookie('access_token', session.accessToken, this.cookieOptions());
     return { usuario: session.usuario };
   }
+
 
   private cookieOptions() {
     return {
@@ -50,7 +51,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
-      maxAge: 30 * 1000,
+      maxAge: 10 * 60 * 1000, //10 minutos
     };
   }
 }

@@ -1,0 +1,105 @@
+<article class="post-card">
+  <header class="post-header">
+    <div class="author-cluster">
+      <div class="avatar-frame"
+        [class.avatar-frame--ember]="post.avatarTone === 'ember'"
+        [class.avatar-frame--stone]="post.avatarTone === 'stone'"
+        [class.avatar-frame--plum]="post.avatarTone === 'plum'">
+        <span class="avatar-initials">{{ post.initials }}</span>
+      </div>
+      <div class="author-details">
+        <div class="author-line">
+          <span class="author-name">{{ post.author }}</span>
+          <span class="author-handle">&#64;{{ post.handle }}</span>
+        </div>
+        <span class="post-time">{{ post.timeLabel }}</span>
+      </div>
+    </div>
+    <span class="game-tag"><span class="tag-mark"></span>{{ post.game }}</span>
+  </header>
+
+  <div class="post-copy">
+    <h2>{{ post.title }}</h2>
+    <p>{{ post.message }}</p>
+  </div>
+
+  <div class="post-media-open" role="button" tabindex="0"
+    [attr.aria-label]="'Ver publicación completa: ' + post.title"
+    (click)="openDetails()" (keydown)="onMediaKeydown($event)">
+    @if (post.imageUrl) {
+      <img class="uploaded-post-image" [src]="post.imageUrl" alt="Imagen adjunta a la publicación" loading="lazy" decoding="async" />
+    } @else {
+      <div class="post-art"
+        [class.post-art--underworld]="post.art === 'underworld'"
+        [class.post-art--afterlight]="post.art === 'afterlight'"
+        [class.post-art--newdawn]="post.art === 'newdawn'" aria-hidden="true">
+        <div class="art-grid"></div>
+        <div class="art-orb"></div>
+        <div class="art-structure"></div>
+        <div class="art-caption">
+          <span class="art-overline">CAPTURA DE LA PARTIDA</span>
+          <span class="art-game-title">{{ post.game }}</span>
+        </div>
+        <span class="art-index">LOBBY / 0{{ post.id.toString().slice(-1) }}</span>
+      </div>
+    }
+  </div>
+
+  <footer class="post-footer">
+    <button class="post-action like-button" [class.like-button--liked]="post.liked"
+      [attr.aria-pressed]="post.liked"
+      [attr.aria-label]="likeAriaLabel"
+      [disabled]="likePending" type="button" (click)="likeClicked.emit()">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.8 4.2a4.1 4.1 0 0 0-5.8 0L10 5.3 8.9 4.2a4.1 4.1 0 0 0-5.8 5.8L10 17l6.8-7a4.1 4.1 0 0 0 0-5.8Z" /></svg>
+      <span>{{ post.likes }}</span><span class="action-word">Me gusta</span>
+    </button>
+    <button class="post-action post-comments" type="button"
+      [attr.aria-expanded]="commentThreadOpen"
+      [attr.aria-label]="commentsAriaLabel"
+      (click)="commentsToggled.emit()">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.8 9.6a6.8 6.8 0 0 1-7 6.7 7.2 7.2 0 0 1-3.1-.7L3 17l1.2-3.1a6.5 6.5 0 0 1-1.2-3.8 6.8 6.8 0 0 1 7-6.7 6.8 6.8 0 0 1 6.8 6.2Z" /></svg>
+      <span>{{ post.comments }} comentarios</span>
+    </button>
+    @if (isOwnPost) {
+      <div class="post-delete-actions">
+        @if (confirmingDelete) {
+          <span>¿Eliminar?</span>
+          <button type="button" (click)="deleteCancelled.emit()" [disabled]="deleting">Cancelar</button>
+          <button class="post-delete-confirm" type="button" (click)="deleteConfirmed.emit()" [disabled]="deleting || loadingFeed">
+            {{ deleteConfirmationLabel() }}
+          </button>
+        } @else {
+          <button type="button" (click)="deleteRequested.emit()" [disabled]="loadingFeed">Eliminar</button>
+        }
+      </div>
+    }
+    <span class="post-footer-note">UNA PARTIDA COMPARTIDA</span>
+  </footer>
+
+  @if (commentThreadOpen) {
+    <section class="comment-thread" [attr.aria-label]="'Comentarios de ' + post.title">
+      @if (commentsLoading) { <p class="comment-status">Cargando comentarios...</p> }
+      @if (commentError) { <p class="comment-error" role="alert">{{ commentError }}</p> }
+      @for (comment of comments; track comment.id) {
+        <article class="comment-item">
+          <header>
+            <strong>{{ commentAuthorName(comment) }}</strong>
+            @if (comment.autor) { <span>&#64;{{ comment.autor.nombreUsuario }}</span> }
+            <time>{{ formatTime(comment.createdAt) }}</time>
+          </header>
+          <p>{{ comment.mensaje }}</p>
+        </article>
+      } @empty {
+        @if (!commentsLoading) { <p class="comment-status">Todavía no hay comentarios. ¡Sé el primero!</p> }
+      }
+      <form class="comment-form" (submit)="submitComment($event)">
+        <label class="visually-hidden" [for]="'comment-' + post.id">Escribir un comentario</label>
+        <textarea [id]="'comment-' + post.id" maxlength="3000" placeholder="Escribí un comentario..."
+          [value]="commentDraft" (input)="onDraftInput($event)"></textarea>
+        <button type="submit" [disabled]="!commentDraft.trim() || commentSubmitting || commentsLoading">
+          {{ commentSubmitLabel() }}
+        </button>
+      </form>
+    </section>
+  }
+</article>

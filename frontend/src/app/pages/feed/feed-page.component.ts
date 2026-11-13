@@ -6,31 +6,14 @@ import { ProfileService } from '../../auth/profile.service';
 import { PublicationComment, PublicationsService } from '../../auth/publications.service';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { PublicationDetailModalComponent } from '../../shared/publication-detail-modal/publication-detail-modal.component';
+import { PublicationCardComponent } from '../../shared/publication-card/publication-card.component';
+import { FeedPost } from './feed-post.model';
 
 type FeedSort = 'recent' | 'popular';
 
-interface FeedPost {
-  id: number | string;
-  authorId: string;
-  author: string;
-  handle: string;
-  initials: string;
-  avatarTone: 'ember' | 'stone' | 'plum';
-  game: string;
-  title: string;
-  message: string;
-  timeLabel: string;
-  createdAt: number;
-  likes: number;
-  liked: boolean;
-  comments: number;
-  art: 'underworld' | 'afterlight' | 'newdawn';
-  imageUrl?: string;
-}
-
 @Component({
   selector: 'app-feed-page',
-  imports: [NavbarComponent, PublicationDetailModalComponent],
+  imports: [NavbarComponent, PublicationDetailModalComponent, PublicationCardComponent],
   templateUrl: './feed-page.component.html',
   styleUrl: './feed-page.component.css',
 })
@@ -218,16 +201,16 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
     return this.pendingLikes().has(String(postId));
   }
 
-  protected isOwnPost(post: FeedPost): boolean {
-    return !!this.currentUserId() && post.authorId === this.currentUserId();
-  }
-
   protected isConfirmingDelete(postId: number | string): boolean {
     return this.confirmDeleteId() === String(postId);
   }
 
   protected isDeletingPost(postId: number | string): boolean {
     return this.deletingPostId() === String(postId);
+  }
+
+  protected isOwnPost(post: FeedPost): boolean {
+    return !!this.currentUserId() && post.authorId === this.currentUserId();
   }
 
   protected requestDelete(postId: number | string): void {
@@ -261,10 +244,6 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
 
   protected commentError(postId: number | string): string {
     return this.commentErrors()[String(postId)] ?? '';
-  }
-
-  protected commentTime(value: string): string {
-    return this.formatTime(value);
   }
 
   protected openPostDetails(post: FeedPost): void {
@@ -308,12 +287,6 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
       },
       complete: () => this.setCommentLoading(id, false),
     });
-  }
-
-  protected updateCommentDraft(postId: number | string, event: Event): void {
-    const input = event.target;
-    if (!(input instanceof HTMLTextAreaElement)) return;
-    this.setCommentDraft(postId, input.value);
   }
 
   protected setCommentDraft(postId: number | string, value: string): void {

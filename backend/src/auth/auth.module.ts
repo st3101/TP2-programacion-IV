@@ -18,7 +18,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '120s' },
+        signOptions: { expiresIn: '10m' },
       }),
     }),
   ],
