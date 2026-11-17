@@ -11,10 +11,10 @@ import { AuthService } from './auth/auth.service';
 export class App {
   protected readonly authService = inject(AuthService);
 
-  protected sessionTimerText(): string {
-    const seconds = this.authService.sessionRemainingSeconds() ?? 0;
-    const minutesPart = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const secondsPart = (seconds % 60).toString().padStart(2, '0');
-    return `${minutesPart}:${secondsPart}`;
+  protected textoRelojSesion(): string {
+    const segundos = this.authService.segundosRestantesSesion() ?? 0;
+    const minutos = Math.floor(segundos / 60).toString().padStart(2, '0');
+    const segundosRestantes = (segundos % 60).toString().padStart(2, '0');
+    return `${minutos}:${segundosRestantes}`;
   }
 }

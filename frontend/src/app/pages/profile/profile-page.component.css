@@ -18,7 +18,7 @@
 .page-heading h1 { margin: 0; font-size: clamp(42px, 6vw, 58px); font-weight: 450; letter-spacing: -.06em; }
 .page-heading h1 span { color: var(--color-ash); }
 .page-heading > p:last-child { margin: 10px 0 0; color: var(--color-ash); font-size: 13px; }
-.identity-card, .edit-card, .post-card, .empty-posts, .status-card { overflow: hidden; border: 1px solid rgb(255 255 255 / 10%); border-radius: 14px; background: linear-gradient(145deg, rgb(17 18 20 / 96%), rgb(8 9 11 / 98%)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%); }
+.identity-card, .edit-card, .empty-posts, .status-card { overflow: hidden; border: 1px solid rgb(255 255 255 / 10%); border-radius: 14px; background: linear-gradient(145deg, rgb(17 18 20 / 96%), rgb(8 9 11 / 98%)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%); }
 .cover-art { position: relative; height: 130px; overflow: hidden; background: radial-gradient(ellipse at 76% 42%, rgb(255 99 99 / 19%), transparent 32%), linear-gradient(110deg, #171112, #171819 58%, #101113); }
 .cover-art::after { position: absolute; right: -5%; bottom: -84px; left: 35%; height: 150px; transform: skewY(-8deg); border-top: 1px solid rgb(255 99 99 / 28%); background: linear-gradient(0deg, #0e0f11, transparent); content: ''; }
 .cover-orb { position: absolute; top: 12px; right: 18%; width: 92px; aspect-ratio: 1; border: 1px solid rgb(255 255 255 / 18%); border-radius: 50%; background: radial-gradient(circle at 40% 36%, rgb(255 99 99 / 24%), transparent 68%); box-shadow: 0 0 40px rgb(255 99 99 / 9%); }
@@ -60,14 +60,8 @@
 .post-count { color: var(--color-mist); font-family: var(--font-mono); font-size: 15px; }
 .post-count span { color: var(--color-smoke); font-size: 10px; }
 .post-list { display: grid; gap: 13px; }
-.post-card { padding: 19px 22px 17px; }
-.post-meta, .comments-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; color: var(--color-smoke); font-family: var(--font-mono); font-size: 8px; letter-spacing: .08em; }
-.post-meta time, .comment-row time { color: #68696b; font-size: 9px; letter-spacing: 0; }
-.post-card h3 { margin: 14px 0 6px; font-size: 16px; font-weight: 550; }
-.post-description { margin: 0; color: #b5b4b4; font-size: 12px; line-height: 1.65; white-space: pre-wrap; }
-.post-image-open { display: block; width: fit-content; max-width: 100%; margin: 14px auto 0; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
-.post-image { display: block; width: auto; height: auto; max-width: 100%; max-height: 300px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 8px; object-fit: contain; object-position: center; }
-.comments-heading { margin-top: 17px; padding-top: 13px; border-top: 1px solid rgb(255 255 255 / 8%); }
+.comments-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 17px; padding-top: 13px; border-top: 1px solid rgb(255 255 255 / 8%); color: var(--color-smoke); font-family: var(--font-mono); font-size: 8px; letter-spacing: .08em; }
+.comment-row time { color: #68696b; font-size: 9px; letter-spacing: 0; }
 .comments-heading span:last-child { font-family: var(--font-ui); font-size: 9px; letter-spacing: 0; }
 .comments-list { display: grid; gap: 11px; margin-top: 12px; }
 .comment-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: start; gap: 9px; }
@@ -119,7 +113,6 @@
   .profile-facts strong { font-size: 10px; }
   .edit-form { grid-template-columns: 1fr; }
   .field-wide { grid-column: auto; }
-  .post-card { padding-inline: 15px; }
   .comment-row { grid-template-columns: 25px minmax(0, 1fr); }
   .comment-row time { grid-column: 2; }
 }

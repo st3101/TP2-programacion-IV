@@ -4,16 +4,16 @@ import { IsIn, IsInt, IsMongoId, IsOptional, IsString, Max, MaxLength, Min } fro
 export class ListPublicacionesQueryDto {
   @IsOptional()
   @Type(() => Number)
-  @IsInt({ message: 'El offset debe ser un número entero.' })
-  @Min(0, { message: 'El offset mínimo es 0.' })
-  offset = 0;
+  @IsInt({ message: 'La página debe ser un número entero.' })
+  @Min(1, { message: 'La página mínima es 1.' })
+  pagina = 1;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt({ message: 'El límite debe ser un número entero.' })
-  @Min(1, { message: 'El límite mínimo es 1.' })
-  @Max(20, { message: 'El límite máximo es 20 publicaciones.' })
-  limit = 5;
+  @IsInt({ message: 'La cantidad debe ser un número entero.' })
+  @Min(1, { message: 'La cantidad mínima es 1 publicación.' })
+  @Max(20, { message: 'La cantidad máxima es 20 publicaciones.' })
+  cantidad = 5;
 
   @IsOptional()
   @IsIn(['fecha', 'me-gusta'], { message: 'El orden debe ser fecha o me-gusta.' })

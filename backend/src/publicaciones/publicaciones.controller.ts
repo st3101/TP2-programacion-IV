@@ -16,8 +16,8 @@ export class PublicacionesController {
   @UseGuards(JwtAuthGuard)
   findAll(@Query() query: ListPublicacionesQueryDto) {
     return this.publicacionesService.findAll(
-      query.offset,
-      query.limit,
+      query.pagina,
+      query.cantidad,
       query.orden,
       query.usuarioId,
       query.usuario,
