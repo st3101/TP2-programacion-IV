@@ -7,18 +7,22 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
+
+
 @Module({
   imports: [
     ConfigModule,
     CloudinaryModule,
     MongooseModule.forFeature([{ name: Usuario.name, schema: UsuarioSchema }]),
-    //Configura jwt para que se pueda inyectar en el servicio de autenticación
+    //Configura jwt 
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '120s' },
+
+        //Setea tiempo de expiración del token a 1 minuto
+        signOptions: { expiresIn: '10m' },
       }),
     }),
   ],

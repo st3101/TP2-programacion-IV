@@ -22,12 +22,13 @@ export class PublicacionesService {
 
   //Busca todas las publicaciones con paginacion ordenadas
   async findAll(
-    offset: number,
-    limit: number,
+    pagina: number,
+    cantidad: number,
     order: 'fecha' | 'me-gusta',
     usuarioId?: string,
     username?: string,
   ) {
+    const desplazamiento = (pagina - 1) * cantidad;
     const filter: Record<string, unknown> = { eliminadaEn: null };
     if (usuarioId) {
       filter.autorId = new Types.ObjectId(usuarioId);
@@ -42,7 +43,9 @@ export class PublicacionesService {
           ],
         })),
       }).select('_id');
-      if (!users.length) return { items: [], offset, limit, total: 0, hasMore: false };
+      if (!users.length) {
+        return { items: [], pagina, cantidad, total: 0, paginasTotales: 0 };
+      }
       filter.autorId = { $in: users.map((user) => user._id) };
     }
 
@@ -72,8 +75,8 @@ export class PublicacionesService {
         },
         { $project: { _id: 1, createdAt: 1, likes: { $size: '$likesData' }, comentarios: { $size: '$commentsData' } } },
         { $sort: sort },
-        { $skip: offset },
-        { $limit: limit },
+        { $skip: desplazamiento },
+        { $limit: cantidad },
       ]),
       this.publicacionModel.countDocuments(filter),
     ]);
@@ -115,7 +118,8 @@ export class PublicacionesService {
       }];
     });
 
-    return { items, offset, limit, total, hasMore: offset + items.length < total };
+    const paginasTotales = Math.ceil(total / cantidad);
+    return { items, pagina, cantidad, total, paginasTotales };
   }
 
   //Busca los comentarios de una publicación específica, verificando que la publicación exista y no esté eliminada.

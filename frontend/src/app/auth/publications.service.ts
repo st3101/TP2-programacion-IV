@@ -38,10 +38,10 @@ export interface PublicationComment {
 
 export interface PublicationPage {
   items: Publication[];
-  offset: number;
-  limit: number;
+  pagina: number;
+  cantidad: number;
   total: number;
-  hasMore: boolean;
+  paginasTotales: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -49,9 +49,11 @@ export class PublicationsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${API_BASE_URL}/api/publicaciones`;
 
-  list(offset: number, limit = 5, orden: 'fecha' | 'me-gusta' = 'fecha', usuario?: string): Observable<PublicationPage> {
-    const params: Record<string, string | number> = { offset, limit, orden };
-    if (usuario) params['usuario'] = usuario;
+  list(pagina: number, cantidad = 5, orden: 'fecha' | 'me-gusta' = 'fecha', usuario?: string): Observable<PublicationPage> {
+    const params: Record<string, string | number> = { pagina, cantidad, orden };
+    if (usuario) {
+      params['usuario'] = usuario;
+    }
     return this.http.get<PublicationPage>(this.apiUrl, { params });
   }
 

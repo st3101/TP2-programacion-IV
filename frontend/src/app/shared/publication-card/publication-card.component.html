@@ -1,0 +1,102 @@
+<article
+  class="publication-card"
+  [class.publication-card--profile]="variant === 'profile'"
+>
+  @if (variant === 'feed') {
+    <header class="publication-header">
+      <div class="author-cluster">
+        <div
+          class="avatar-frame"
+          [class.avatar-frame--ember]="avatarTone === 'ember'"
+          [class.avatar-frame--stone]="avatarTone === 'stone'"
+          [class.avatar-frame--plum]="avatarTone === 'plum'"
+        >
+          <span class="avatar-initials">{{ initials }}</span>
+        </div>
+
+        <div class="author-details">
+          <div class="author-line">
+            <span class="author-name">{{ author }}</span>
+            <span class="author-handle">&#64;{{ handle }}</span>
+          </div>
+          <span class="publication-time">{{ timeLabel }}</span>
+        </div>
+      </div>
+
+      <span class="game-tag">
+        <span class="tag-mark"></span>
+        {{ game }}
+      </span>
+    </header>
+
+    <div class="publication-copy">
+      <h2>{{ title }}</h2>
+      <p>{{ description }}</p>
+    </div>
+
+    <div
+      class="publication-media"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="'Ver publicación completa: ' + title"
+      (click)="openDetails()"
+      (keydown.enter)="openDetails()"
+      (keydown.space)="$event.preventDefault(); openDetails()"
+    >
+      @if (imageUrl) {
+        <img
+          class="uploaded-publication-image"
+          [src]="imageUrl"
+          alt="Imagen adjunta a la publicación"
+          loading="lazy"
+          decoding="async"
+        />
+      } @else {
+        <div
+          class="publication-art"
+          [class.publication-art--afterlight]="art === 'afterlight'"
+          [class.publication-art--newdawn]="art === 'newdawn'"
+          aria-hidden="true"
+        >
+          <div class="art-grid"></div>
+          <div class="art-orb"></div>
+          <div class="art-structure"></div>
+
+          <div class="art-caption">
+            <span class="art-overline">CAPTURA DE LA PARTIDA</span>
+            <span class="art-game-title">{{ game }}</span>
+          </div>
+
+          <span class="art-index">LOBBY / 0{{ id.toString().slice(-1) }}</span>
+        </div>
+      }
+    </div>
+  } @else {
+    <header class="profile-publication-meta">
+      <span>PUBLICACIÓN</span>
+      <time>{{ timeLabel }}</time>
+    </header>
+
+    <h2 class="profile-publication-title">{{ title }}</h2>
+    <p class="profile-publication-description">{{ description }}</p>
+
+    @if (imageUrl) {
+      <button
+        class="profile-publication-image-button"
+        type="button"
+        (click)="openDetails()"
+        [attr.aria-label]="'Ver publicación completa: ' + title"
+      >
+        <img
+          class="profile-publication-image"
+          [src]="imageUrl"
+          alt="Imagen de la publicación"
+          loading="lazy"
+          decoding="async"
+        />
+      </button>
+    }
+  }
+
+  <ng-content />
+</article>

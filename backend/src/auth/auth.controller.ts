@@ -35,6 +35,7 @@ export class AuthController {
     return { message: 'Sesión cerrada.' };
   }
 
+  // Crea la cookie de sesión y devuelve el usuario
   private async createSessionCookie(
     sessionPromise: ReturnType<AuthService['login']>,
     response?: Response,
@@ -44,13 +45,15 @@ export class AuthController {
     return { usuario: session.usuario };
   }
 
+  // Configuración de las cookies de sesión
   private cookieOptions() {
     return {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
-      maxAge: 30 * 1000,
+      // La cookie expira en 10 minutos (10 * 30 * 1000 ms)
+      maxAge: 10 * 30 * 1000,
     };
   }
 }

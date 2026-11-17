@@ -62,70 +62,27 @@
       @if (feedError()) {
         <div class="feed-load-error" role="alert">
           <span>{{ feedError() }}</span>
-          <button type="button" (click)="loadNextPage()">Reintentar</button>
+          <button type="button" (click)="cargarPagina(paginaActual())">Reintentar</button>
         </div>
       }
       @if (likeError()) { <p class="publish-error" role="alert">{{ likeError() }}</p> }
       @if (deleteError()) { <p class="publish-error" role="alert">{{ deleteError() }}</p> }
-      @for (post of visiblePosts(); track post.id) {
-        <article class="post-card">
-          <header class="post-header">
-            <div class="author-cluster">
-              <div
-                class="avatar-frame"
-                [class.avatar-frame--ember]="post.avatarTone === 'ember'"
-                [class.avatar-frame--stone]="post.avatarTone === 'stone'"
-                [class.avatar-frame--plum]="post.avatarTone === 'plum'"
-              >
-                <span class="avatar-initials">{{ post.initials }}</span>
-              </div>
-              <div class="author-details">
-                <div class="author-line">
-                  <span class="author-name">{{ post.author }}</span>
-                  <span class="author-handle">&#64;{{ post.handle }}</span>
-                </div>
-                <span class="post-time">{{ post.timeLabel }}</span>
-              </div>
-            </div>
-            <span class="game-tag"><span class="tag-mark"></span>{{ post.game }}</span>
-          </header>
-
-          <div class="post-copy">
-            <h2>{{ post.title }}</h2>
-            <p>{{ post.message }}</p>
-          </div>
-
-          <div
-            class="post-media-open"
-            role="button"
-            tabindex="0"
-            [attr.aria-label]="'Ver publicación completa: ' + post.title"
-            (click)="openPostDetails(post)"
-            (keydown.enter)="openPostDetails(post)"
-            (keydown.space)="$event.preventDefault(); openPostDetails(post)"
-          >
-            @if (post.imageUrl) {
-              <img class="uploaded-post-image" [src]="post.imageUrl" alt="Imagen adjunta a la publicación" loading="lazy" decoding="async" />
-            } @else {
-              <div
-                class="post-art"
-                [class.post-art--underworld]="post.art === 'underworld'"
-                [class.post-art--afterlight]="post.art === 'afterlight'"
-                [class.post-art--newdawn]="post.art === 'newdawn'"
-                aria-hidden="true"
-              >
-                <div class="art-grid"></div>
-                <div class="art-orb"></div>
-                <div class="art-structure"></div>
-                <div class="art-caption">
-                  <span class="art-overline">CAPTURA DE LA PARTIDA</span>
-                  <span class="art-game-title">{{ post.game }}</span>
-                </div>
-                <span class="art-index">LOBBY / 0{{ post.id.toString().slice(-1) }}</span>
-              </div>
-          }
-          </div>
-
+      @for (post of posts(); track post.id) {
+        <app-publication-card
+          variant="feed"
+          [id]="post.id"
+          [title]="post.title"
+          [description]="post.message"
+          [author]="post.author"
+          [handle]="post.handle"
+          [initials]="post.initials"
+          [avatarTone]="post.avatarTone"
+          [game]="post.game"
+          [timeLabel]="post.timeLabel"
+          [imageUrl]="post.imageUrl ?? ''"
+          [art]="post.art"
+          (detailsRequested)="openPostDetails(post)"
+        >
           <footer class="post-footer">
             <button
               class="post-action like-button"
@@ -160,7 +117,11 @@
                   <span>¿Eliminar?</span>
                   <button type="button" (click)="cancelDelete()" [disabled]="isDeletingPost(post.id)">Cancelar</button>
                   <button class="post-delete-confirm" type="button" (click)="deletePost(post.id)" [disabled]="isDeletingPost(post.id) || loadingFeed()">
-                    {{ isDeletingPost(post.id) ? 'Eliminando...' : 'Sí, eliminar' }}
+                    @if (isDeletingPost(post.id)) {
+                      Eliminando...
+                    } @else {
+                      Sí, eliminar
+                    }
                   </button>
                 } @else {
                   <button type="button" (click)="requestDelete(post.id)" [disabled]="loadingFeed()">Eliminar</button>
@@ -207,7 +168,7 @@
               </form>
             </section>
           }
-        </article>
+        </app-publication-card>
       } @empty {
         <div class="empty-state" role="status">
           <span class="empty-glyph" aria-hidden="true">⌕</span>
@@ -215,7 +176,7 @@
             <h2>Cargando publicaciones...</h2>
           } @else if (feedError()) {
             <h2>No pudimos cargar el feed.</h2>
-            <button type="button" (click)="loadNextPage()">Reintentar</button>
+            <button type="button" (click)="cargarPagina(paginaActual())">Reintentar</button>
           } @else if (authorFilter().trim()) {
             <h2>No encontramos a ese jugador.</h2>
             <p>Probá con otro nombre o usuario.</p>
@@ -227,12 +188,27 @@
       }
     </section>
 
-    @if (loadingFeed() && posts().length) {
-      <p class="feed-end"><span></span> CARGANDO MÁS PUBLICACIONES <span></span></p>
-    } @else if (!hasMore() && posts().length) {
-      <p class="feed-end"><span></span> ESTÁS AL DÍA <span></span></p>
+    @if (totalPublications() > 0) {
+      <nav class="pagination" aria-label="Páginas de publicaciones">
+        <button
+          type="button"
+          (click)="cargarPagina(paginaActual() - 1)"
+          [disabled]="paginaActual() === 1 || loadingFeed()"
+        >
+          Anterior
+        </button>
+
+        <span>Página {{ paginaActual() }} de {{ paginasTotales() }}</span>
+
+        <button
+          type="button"
+          (click)="cargarPagina(paginaActual() + 1)"
+          [disabled]="paginaActual() === paginasTotales() || loadingFeed()"
+        >
+          Siguiente
+        </button>
+      </nav>
     }
-    <div #feedSentinel class="feed-sentinel" aria-hidden="true"></div>
   </main>
 
   <aside class="composer-dock" [class.composer-dock--open]="composerOpen()" aria-label="Crear una publicación">

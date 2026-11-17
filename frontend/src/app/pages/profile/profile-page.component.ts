@@ -6,11 +6,12 @@ import { AuthService } from '../../auth/auth.service';
 import { MyProfileResponse, ProfileService } from '../../auth/profile.service';
 import { PublicationComment } from '../../auth/publications.service';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { PublicationCardComponent } from '../../shared/publication-card/publication-card.component';
 import { PublicationDetailModalComponent, PublicationDetailPost } from '../../shared/publication-detail-modal/publication-detail-modal.component';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [DatePipe, RouterLink, NavbarComponent, PublicationDetailModalComponent],
+  imports: [DatePipe, RouterLink, NavbarComponent, PublicationCardComponent, PublicationDetailModalComponent],
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.css',
 })

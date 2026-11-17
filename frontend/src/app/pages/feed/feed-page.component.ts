@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { ProfileService } from '../../auth/profile.service';
 import { PublicationComment, PublicationsService } from '../../auth/publications.service';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { PublicationCardComponent } from '../../shared/publication-card/publication-card.component';
 import { PublicationDetailModalComponent } from '../../shared/publication-detail-modal/publication-detail-modal.component';
 
 type FeedSort = 'recent' | 'popular';
@@ -30,11 +31,11 @@ interface FeedPost {
 
 @Component({
   selector: 'app-feed-page',
-  imports: [NavbarComponent, PublicationDetailModalComponent],
+  imports: [NavbarComponent, PublicationCardComponent, PublicationDetailModalComponent],
   templateUrl: './feed-page.component.html',
   styleUrl: './feed-page.component.css',
 })
-export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
+export class FeedPageComponent implements OnDestroy, OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly publicationsService = inject(PublicationsService);
@@ -49,8 +50,10 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
   protected readonly publishError = signal('');
   protected readonly feedError = signal('');
   protected readonly loadingFeed = signal(false);
-  protected readonly hasMore = signal(true);
   protected readonly totalPublications = signal(0);
+  protected readonly paginaActual = signal(1);
+  private readonly publicacionesPorPagina = 5;
+  protected readonly paginasTotales = signal(1);
   protected readonly likeError = signal('');
   protected readonly deleteError = signal('');
   protected readonly pendingLikes = signal<ReadonlySet<string>>(new Set());
@@ -66,17 +69,12 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
   protected readonly commentsLoading = signal<ReadonlySet<string>>(new Set());
   protected readonly commentsSubmitting = signal<ReadonlySet<string>>(new Set());
   protected readonly commentErrors = signal<Record<string, string>>({});
-  private readonly pageSize = 5;
-  private offset = 0;
   private feedRequestVersion = 0;
   private searchDebounce?: ReturnType<typeof setTimeout>;
   private readonly likedPublicationIds = signal<ReadonlySet<string>>(new Set());
-  private observer?: IntersectionObserver;
-
-  @ViewChild('feedSentinel') private feedSentinel?: ElementRef<HTMLElement>;
 
   ngOnInit(): void {
-    this.loadNextPage();
+    this.cargarPagina(1);
     this.profileService.getMyProfile().subscribe({
       next: ({ usuario }) => this.currentUserId.set(usuario.id),
     });
@@ -89,70 +87,72 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
-  ngAfterViewInit(): void {
-    this.observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) this.loadNextPage();
-      },
-      { rootMargin: '600px 0px' },
-    );
-    if (this.feedSentinel) this.observer.observe(this.feedSentinel.nativeElement);
-  }
-
   ngOnDestroy(): void {
-    this.observer?.disconnect();
     if (this.searchDebounce) clearTimeout(this.searchDebounce);
   }
 
-  protected loadNextPage(): void {
-    if (this.loadingFeed() || !this.hasMore()) return;
+  protected cargarPagina(pagina: number): void {
+    if (this.loadingFeed()) {
+      return;
+    }
+
+    if (pagina < 1 || pagina > this.paginasTotales()) {
+      return;
+    }
 
     this.loadingFeed.set(true);
     this.feedError.set('');
     const requestVersion = this.feedRequestVersion;
-    const username = this.authorFilter().trim() || undefined;
-    const order = this.sortMode() === 'popular' ? 'me-gusta' : 'fecha';
-    this.publicationsService.list(this.offset, this.pageSize, order, username).subscribe({
+    const usuarioBuscado = this.authorFilter().trim() || undefined;
+    const orden = this.sortMode() === 'popular' ? 'me-gusta' : 'fecha';
+    this.publicationsService.list(pagina, this.publicacionesPorPagina, orden, usuarioBuscado).subscribe({
       next: (result) => {
-        if (requestVersion !== this.feedRequestVersion) return;
-        const currentIds = new Set(this.posts().map((post) => String(post.id)));
-        const newPosts = result.items
-          .filter((publication) => !currentIds.has(publication.id))
-          .map((publication, index) => {
-            const author = publication.autor;
-            const name = `${author?.nombre ?? ''} ${author?.apellido ?? ''}`.trim();
-            const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '??';
-            return {
-              id: publication.id,
-              authorId: author?.id ?? '',
-              author: name || author?.nombreUsuario || 'Jugador',
-              handle: author?.nombreUsuario || 'jugador',
-              initials,
-              avatarTone: (['ember', 'stone', 'plum'] as const)[(this.posts().length + index) % 3],
-              game: 'Comunidad' as const,
-              title: publication.titulo,
-              message: publication.descripcion,
-              imageUrl: publication.imagenUrl || undefined,
-              timeLabel: this.formatTime(publication.createdAt),
-              createdAt: new Date(publication.createdAt).getTime() || Date.now(),
-              likes: publication.likes,
-              liked: this.likedPublicationIds().has(publication.id),
-              comments: publication.comentarios,
-              art: 'underworld' as const,
-            };
-          });
-        this.posts.update((posts) => [...posts, ...newPosts]);
-        this.offset += result.items.length;
-        this.hasMore.set(result.hasMore);
+        if (requestVersion !== this.feedRequestVersion) {
+          return;
+        }
+
+        const publicacionesDeLaPagina = result.items.map((publication, index) => {
+          const author = publication.autor;
+          const name = `${author?.nombre ?? ''} ${author?.apellido ?? ''}`.trim();
+          const initials = name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0])
+            .join('')
+            .toUpperCase() || '??';
+
+          return {
+            id: publication.id,
+            authorId: author?.id ?? '',
+            author: name || author?.nombreUsuario || 'Jugador',
+            handle: author?.nombreUsuario || 'jugador',
+            initials,
+            avatarTone: (['ember', 'stone', 'plum'] as const)[index % 3],
+            game: 'Comunidad' as const,
+            title: publication.titulo,
+            message: publication.descripcion,
+            imageUrl: publication.imagenUrl || undefined,
+            timeLabel: this.formatTime(publication.createdAt),
+            createdAt: new Date(publication.createdAt).getTime() || Date.now(),
+            likes: publication.likes,
+            liked: this.likedPublicationIds().has(publication.id),
+            comments: publication.comentarios,
+            art: 'underworld' as const,
+          };
+        });
+
+        this.posts.set(publicacionesDeLaPagina);
+        this.paginaActual.set(result.pagina);
         this.loadingFeed.set(false);
         this.totalPublications.set(result.total);
-        if (result.hasMore && this.feedSentinel && this.observer) {
-          this.observer.unobserve(this.feedSentinel.nativeElement);
-          this.observer.observe(this.feedSentinel.nativeElement);
-        }
+        this.paginasTotales.set(Math.max(1, result.paginasTotales));
       },
       error: () => {
-        if (requestVersion !== this.feedRequestVersion) return;
+        if (requestVersion !== this.feedRequestVersion) {
+          return;
+        }
+
         this.feedError.set('No se pudieron cargar las publicaciones. Volvé a intentar.');
         this.loadingFeed.set(false);
       },
@@ -168,16 +168,11 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
     return `hace ${Math.floor(hours / 24)} d`;
   }
 
-  protected readonly visiblePosts = computed(() => {
-    return this.posts().slice().sort((first, second) =>
-      this.sortMode() === 'popular'
-        ? second.likes - first.likes || second.createdAt - first.createdAt
-        : second.createdAt - first.createdAt,
-    );
-  });
-
   protected setSort(mode: FeedSort): void {
-    if (this.sortMode() === mode) return;
+    if (this.sortMode() === mode) {
+      return;
+    }
+
     this.sortMode.set(mode);
     this.resetFeed();
   }
@@ -186,11 +181,11 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
     this.feedRequestVersion++;
     this.loadingFeed.set(false);
     this.feedError.set('');
-    this.offset = 0;
+    this.paginaActual.set(1);
+    this.paginasTotales.set(1);
     this.posts.set([]);
     this.totalPublications.set(0);
-    this.hasMore.set(true);
-    this.loadNextPage();
+    this.cargarPagina(1);
   }
 
   protected logout(): void {
@@ -371,26 +366,54 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy, OnInit {
   protected deletePost(postId: number | string): void {
     const id = String(postId);
     const post = this.posts().find((candidate) => String(candidate.id) === id);
-    if (this.loadingFeed() || this.deletingPostId() || !post || !this.isOwnPost(post)) return;
+
+    if (this.loadingFeed()) {
+      return;
+    }
+
+    if (this.deletingPostId()) {
+      return;
+    }
+
+    if (!post) {
+      return;
+    }
+
+    if (!this.isOwnPost(post)) {
+      return;
+    }
 
     this.deleteError.set('');
     this.deletingPostId.set(id);
     this.publicationsService.delete(id).subscribe({
       next: () => {
-        this.posts.update((posts) => posts.filter((post) => String(post.id) !== id));
-        this.totalPublications.update((total) => Math.max(0, total - 1));
+        const totalLuegoDeEliminar = Math.max(0, this.totalPublications() - 1);
+        const paginasLuegoDeEliminar = Math.max(
+          1,
+          Math.ceil(totalLuegoDeEliminar / this.publicacionesPorPagina),
+        );
+        let paginaACargar = this.paginaActual();
+
+        if (paginaACargar > paginasLuegoDeEliminar) {
+          paginaACargar = paginasLuegoDeEliminar;
+        }
+
+        this.totalPublications.set(totalLuegoDeEliminar);
+        this.paginasTotales.set(paginasLuegoDeEliminar);
+        this.posts.set([]);
         this.confirmDeleteId.set('');
-        this.offset = Math.max(0, this.offset - this.pageSize);
-        this.hasMore.set(true);
         this.deletingPostId.set('');
-        this.loadNextPage();
+        this.cargarPagina(paginaACargar);
       },
       error: (error: HttpErrorResponse) => {
-        this.deleteError.set(error.status === 403
-          ? 'Solo podés eliminar tus propias publicaciones.'
-          : error.status === 401
-            ? 'Iniciá sesión para eliminar una publicación.'
-            : 'No se pudo eliminar la publicación. Intentá otra vez.');
+        if (error.status === 403) {
+          this.deleteError.set('Solo podés eliminar tus propias publicaciones.');
+        } else if (error.status === 401) {
+          this.deleteError.set('Iniciá sesión para eliminar una publicación.');
+        } else {
+          this.deleteError.set('No se pudo eliminar la publicación. Intentá otra vez.');
+        }
+
         this.deletingPostId.set('');
         this.confirmDeleteId.set('');
       },
