@@ -24,17 +24,28 @@ export class PublicationDetailModalComponent {
   @Input({ required: true }) post!: PublicationDetailPost;
   @Input() comments: PublicationComment[] = [];
   @Input() loading = false;
+  @Input() hayMasComentarios = false;
   @Input() error = '';
   @Input() draft = '';
   @Input() submitting = false;
+  @Input() canComment = true;
 
   @Output() closed = new EventEmitter<void>();
   @Output() commentSubmitted = new EventEmitter<void>();
+  @Output() solicitarMasComentarios = new EventEmitter<void>();
   @Output() draftChanged = new EventEmitter<string>();
 
+  protected sendComment(event: Event): void {
+    event.preventDefault();
+    this.commentSubmitted.emit();
+  }
+
   protected updateDraft(event: Event): void {
-    const input = event.target;
-    if (input instanceof HTMLTextAreaElement) this.draftChanged.emit(input.value);
+    const campo = event.target;
+    if (!(campo instanceof HTMLTextAreaElement)) {
+      return;
+    }
+    this.draftChanged.emit(campo.value);
   }
 
   protected commentTime(value: string): string {

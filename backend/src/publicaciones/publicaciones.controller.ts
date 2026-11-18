@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { CreateComentarioDto } from './dto/create-comentario.dto';
+import { ListarComentariosQueryDto } from './dto/listar-comentarios-query.dto';
 import { ListPublicacionesQueryDto } from './dto/list-publicaciones-query.dto';
 import { PublicacionesService } from './publicaciones.service';
 
@@ -32,8 +33,15 @@ export class PublicacionesController {
 
   @Get(':id/comentarios')
   @UseGuards(JwtAuthGuard)
-  findComments(@Param('id') publicationId: string) {
-    return this.publicacionesService.findComments(publicationId);
+  listarComentarios(
+    @Param('id') publicacionId: string,
+    @Query() query: ListarComentariosQueryDto,
+  ) {
+    return this.publicacionesService.listarComentarios(
+      publicacionId,
+      query.pagina,
+      query.cantidad,
+    );
   }
 
   @Post(':id/comentarios')
@@ -44,6 +52,16 @@ export class PublicacionesController {
     @Body() dto: CreateComentarioDto,
   ) {
     return this.publicacionesService.createComment(request.user.sub, publicationId, dto);
+  }
+
+  @Patch(':id/comentarios/:comentarioId')
+  @UseGuards(JwtAuthGuard)
+  editarComentario(
+    @Param('comentarioId') comentarioId: string,
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: CreateComentarioDto,
+  ) {
+    return this.publicacionesService.editarComentario(request.user.sub, comentarioId, dto);
   }
 
   @Post()

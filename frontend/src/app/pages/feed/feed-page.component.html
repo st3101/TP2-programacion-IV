@@ -1,5 +1,5 @@
 <div class="feed-shell">
-  <app-navbar currentPage="feed" (logoutRequested)="logout()" />
+  <app-navbar currentPage="feed" (logoutRequested)="cerrarSesion()" />
 
   <main class="page-content">
     <section class="feed-heading" aria-labelledby="feed-title">
@@ -21,7 +21,7 @@
           [class.sort-button--active]="sortMode() === 'recent'"
           [attr.aria-pressed]="sortMode() === 'recent'"
           type="button"
-          (click)="setSort('recent')"
+          (click)="cambiarOrden('recent')"
         >
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="M3 4h10M3 8h7M3 12h4" />
@@ -33,7 +33,7 @@
           [class.sort-button--active]="sortMode() === 'popular'"
           [attr.aria-pressed]="sortMode() === 'popular'"
           type="button"
-          (click)="setSort('popular')"
+          (click)="cambiarOrden('popular')"
         >
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="m8 1.8 1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6L8 1.8Z" />
@@ -52,7 +52,7 @@
           type="search"
           placeholder="Buscar jugador..."
           [value]="authorFilter()"
-          (input)="updateAuthorFilter($event)"
+          (input)="actualizarFiltroUsuario($event)"
         />
         <kbd>/</kbd>
       </label>
@@ -81,7 +81,7 @@
           [timeLabel]="post.timeLabel"
           [imageUrl]="post.imageUrl ?? ''"
           [art]="post.art"
-          (detailsRequested)="openPostDetails(post)"
+          (detailsRequested)="abrirDetallePublicacion(post)"
         >
           <footer class="post-footer">
             <button
@@ -89,9 +89,9 @@
               [class.like-button--liked]="post.liked"
               [attr.aria-pressed]="post.liked"
               [attr.aria-label]="post.liked ? 'Quitar Me gusta' : 'Dar Me gusta'"
-              [disabled]="isLikePending(post.id)"
+              [disabled]="estaProcesandoMeGusta(post.id)"
               type="button"
-              (click)="toggleLike(post.id)"
+              (click)="alternarMeGusta(post.id)"
             >
               <svg viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M16.8 4.2a4.1 4.1 0 0 0-5.8 0L10 5.3 8.9 4.2a4.1 4.1 0 0 0-5.8 5.8L10 17l6.8-7a4.1 4.1 0 0 0 0-5.8Z" />
@@ -99,75 +99,98 @@
               <span>{{ post.likes }}</span>
               <span class="action-word">Me gusta</span>
             </button>
-            <button
-              class="post-action post-comments"
-              type="button"
-              [attr.aria-expanded]="isCommentThreadOpen(post.id)"
-              [attr.aria-label]="(isCommentThreadOpen(post.id) ? 'Ocultar' : 'Ver') + ' comentarios: ' + post.comments"
-              (click)="toggleCommentThread(post.id)"
-            >
+            <span class="post-action post-comments" [attr.aria-label]="'Comentarios: ' + post.comments">
               <svg viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M16.8 9.6a6.8 6.8 0 0 1-7 6.7 7.2 7.2 0 0 1-3.1-.7L3 17l1.2-3.1a6.5 6.5 0 0 1-1.2-3.8 6.8 6.8 0 0 1 7-6.7 6.8 6.8 0 0 1 6.8 6.2Z" />
               </svg>
               <span>{{ post.comments }} comentarios</span>
-            </button>
-            @if (isOwnPost(post)) {
+            </span>
+            @if (esPublicacionPropia(post)) {
               <div class="post-delete-actions">
-                @if (isConfirmingDelete(post.id)) {
+                @if (estaConfirmandoEliminacion(post.id)) {
                   <span>¿Eliminar?</span>
-                  <button type="button" (click)="cancelDelete()" [disabled]="isDeletingPost(post.id)">Cancelar</button>
-                  <button class="post-delete-confirm" type="button" (click)="deletePost(post.id)" [disabled]="isDeletingPost(post.id) || loadingFeed()">
-                    @if (isDeletingPost(post.id)) {
+                  <button type="button" (click)="cancelarEliminacion()" [disabled]="estaEliminandoPublicacion(post.id)">Cancelar</button>
+                  <button class="post-delete-confirm" type="button" (click)="eliminarPublicacion(post.id)" [disabled]="estaEliminandoPublicacion(post.id) || loadingFeed()">
+                    @if (estaEliminandoPublicacion(post.id)) {
                       Eliminando...
                     } @else {
                       Sí, eliminar
                     }
                   </button>
                 } @else {
-                  <button type="button" (click)="requestDelete(post.id)" [disabled]="loadingFeed()">Eliminar</button>
+                  <button type="button" (click)="solicitarEliminacion(post.id)" [disabled]="loadingFeed()">Eliminar</button>
                 }
               </div>
             }
             <span class="post-footer-note">UNA PARTIDA COMPARTIDA</span>
           </footer>
 
-          @if (isCommentThreadOpen(post.id)) {
-            <section class="comment-thread" [attr.aria-label]="'Comentarios de ' + post.title">
-              @if (isCommentsLoading(post.id)) {
+          <section class="comment-thread" [attr.aria-label]="'Comentarios de ' + post.title">
+              @if (estanCargandoComentarios(post.id)) {
                 <p class="comment-status">Cargando comentarios...</p>
               }
-              @if (commentError(post.id)) {
-                <p class="comment-error" role="alert">{{ commentError(post.id) }}</p>
+              @if (errorComentario(post.id)) {
+                <p class="comment-error" role="alert">{{ errorComentario(post.id) }}</p>
               }
-              @for (comment of commentsFor(post.id); track comment.id) {
+              @for (comment of obtenerComentarios(post.id); track comment.id) {
                 <article class="comment-item">
                   <header>
                     <strong>{{ comment.autor ? comment.autor.nombre + ' ' + comment.autor.apellido : 'Usuario' }}</strong>
                     @if (comment.autor) { <span>&#64;{{ comment.autor.nombreUsuario }}</span> }
-                    <time>{{ commentTime(comment.createdAt) }}</time>
+                    <time>{{ horaComentario(comment.createdAt) }}</time>
                   </header>
-                  <p>{{ comment.mensaje }}</p>
+                  @if (comentarioEnEdicion() === comment.id) {
+                    <div class="comment-edit-form">
+                      <textarea
+                        maxlength="3000"
+                        aria-label="Editar comentario"
+                        [value]="textoEdicionComentario()"
+                        (input)="cambiarTextoEdicionComentario($event)"
+                      ></textarea>
+                      <div class="comment-edit-actions">
+                        <button class="comment-edit-save" type="button" (click)="guardarEdicionComentario(post.id, comment)">Guardar</button>
+                        <button class="comment-edit-cancel" type="button" (click)="cancelarEdicionComentario()">Cancelar</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="comment-text-row">
+                      <p>{{ comment.mensaje }} @if (comment.modificado) { <small class="comment-edited-label">Editado</small> }</p>
+                      @if (puedeEditarComentario(comment)) {
+                        <button class="edit-comment-button" type="button" (click)="iniciarEdicionComentario(comment)">Editar</button>
+                      }
+                    </div>
+                  }
                 </article>
               } @empty {
-                @if (!isCommentsLoading(post.id)) {
+                @if (!estanCargandoComentarios(post.id) && !errorComentario(post.id)) {
                   <p class="comment-status">Todavía no hay comentarios. ¡Sé el primero!</p>
                 }
               }
-              <form class="comment-form" (submit)="$event.preventDefault(); submitComment(post.id)">
+              @if (hayMasComentarios(post.id)) {
+                <button
+                  class="load-more-comments"
+                  type="button"
+                  aria-label="Cargar más comentarios"
+                  [disabled]="estanCargandoComentarios(post.id)"
+                  (click)="cargarMasComentarios(post.id)"
+                >
+                  <span aria-hidden="true">+</span>
+                </button>
+              }
+              <form class="comment-form" (submit)="enviarComentario(post.id, $event)">
                 <label class="visually-hidden" [for]="'comment-' + post.id">Escribir un comentario</label>
                 <textarea
                   [id]="'comment-' + post.id"
-                  maxlength="3000"
                   placeholder="Escribí un comentario..."
-                  [value]="commentText(post.id)"
-                  (input)="updateCommentDraft(post.id, $event)"
+                  maxlength="3000"
+                  [value]="textoComentario(post.id)"
+                  (input)="actualizarBorradorComentario(post.id, $event)"
                 ></textarea>
-                <button type="submit" [disabled]="!commentText(post.id).trim() || isCommentSubmitting(post.id) || isCommentsLoading(post.id)">
-                  {{ isCommentSubmitting(post.id) ? 'Enviando...' : 'Comentar' }}
+                <button type="submit" [disabled]="!textoComentario(post.id).trim() || seEstaEnviandoComentario(post.id)">
+                  {{ seEstaEnviandoComentario(post.id) ? 'Enviando...' : 'Comentar' }}
                 </button>
               </form>
-            </section>
-          }
+          </section>
         </app-publication-card>
       } @empty {
         <div class="empty-state" role="status">
@@ -219,7 +242,7 @@
         <span class="composer-trigger-action">Hacer publicación</span>
       </button>
     } @else {
-    <div class="composer-inner">
+    <form class="composer-inner" (submit)="crearPublicacion($event)" novalidate>
       <div class="composer-prompt">
         <span class="composer-plus" aria-hidden="true">+</span>
         <div>
@@ -232,42 +255,43 @@
         <span class="visually-hidden">Título de la publicación</span>
         <input
           type="text"
-          maxlength="120"
+         
           placeholder="Título de la publicación"
-          [value]="titleDraft()"
-          (input)="updateTitle($event)"
+          [formField]="formularioPublicacion.titulo"
         />
       </label>
       <label class="composer-input-wrap">
         <span class="visually-hidden">Descripción de la publicación</span>
-        <textarea maxlength="10000" placeholder="Escribí algo para la comunidad..." [value]="draft()" (input)="updateDraft($event)"></textarea>
+        <textarea [formField]="formularioPublicacion.descripcion" placeholder="Escribí algo para la comunidad..."></textarea>
       </label>
       <label class="composer-image-input">
         <span aria-hidden="true">＋</span> {{ imageName() || 'Agregar foto (opcional)' }}
-        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" />
+        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="seleccionarImagen($event)" />
       </label>
-      <button class="publish-button" type="button" [disabled]="!titleDraft().trim() || !draft().trim() || publishing()" (click)="publish()">
-        {{ publishing() ? 'Publicando...' : 'Publicar' }}
+      <button class="publish-button" type="submit" [disabled]="formularioPublicacion().submitting()">
+        {{ formularioPublicacion().submitting() ? 'Publicando...' : 'Publicar' }}
         <svg viewBox="0 0 16 16" aria-hidden="true">
           <path d="M3 8h10M8.5 3.5 13 8l-4.5 4.5" />
         </svg>
       </button>
       @if (publishError()) { <p class="publish-error" role="alert">{{ publishError() }}</p> }
-    </div>
+    </form>
     }
   </aside>
 
   @if (selectedPost(); as detailPost) {
     <app-publication-detail-modal
       [post]="detailPost"
-      [comments]="commentsFor(detailPost.id)"
-      [loading]="isCommentsLoading(detailPost.id)"
-      [error]="commentError(detailPost.id)"
-      [draft]="commentText(detailPost.id)"
-      [submitting]="isCommentSubmitting(detailPost.id)"
-      (closed)="closePostDetails()"
-      (draftChanged)="setCommentDraft(detailPost.id, $event)"
-      (commentSubmitted)="submitComment(detailPost.id)"
+      [comments]="obtenerComentarios(detailPost.id)"
+      [loading]="estanCargandoComentarios(detailPost.id)"
+      [hayMasComentarios]="hayMasComentarios(detailPost.id)"
+      [error]="errorComentario(detailPost.id)"
+      [draft]="textoComentario(detailPost.id)"
+      [submitting]="seEstaEnviandoComentario(detailPost.id)"
+      (closed)="cerrarDetallePublicacion()"
+      (solicitarMasComentarios)="cargarMasComentarios(detailPost.id)"
+      (draftChanged)="actualizarTextoComentario(detailPost.id, $event)"
+      (commentSubmitted)="enviarComentario(detailPost.id)"
     />
   }
 </div>
