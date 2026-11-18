@@ -38,16 +38,32 @@
             <div><p class="eyebrow">ACTUALIZÁ TUS DATOS</p><h2 id="edit-title">Editar perfil</h2></div>
             <button class="close-edit" type="button" (click)="cancelEditing()" aria-label="Cancelar edición">×</button>
           </div>
-          <form class="edit-form" (submit)="saveProfile($event)">
-            <label>Nombre<input name="nombre" type="text" maxlength="80" [value]="data.usuario.nombre" required /></label>
-            <label>Apellido<input name="apellido" type="text" maxlength="80" [value]="data.usuario.apellido" required /></label>
-            <label>Nombre de usuario<input name="nombreUsuario" type="text" minlength="3" maxlength="30" [value]="data.usuario.nombreUsuario" required /></label>
-            <label>Fecha de nacimiento<input name="fechaNacimiento" type="date" [value]="dateInput(data.usuario.fechaNacimiento)" required /></label>
-            <label class="field-wide">Descripción<textarea name="descripcion" maxlength="280" rows="3" placeholder="Contale algo a la comunidad">{{ data.usuario.descripcion }}</textarea><small>Hasta 280 caracteres.</small></label>
+          <form class="edit-form" (submit)="saveProfile($event)" novalidate>
+            <label>Nombre<input [formField]="formulario.nombre" type="text" />
+              @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+                <small class="field-validation-error">Ingresá tu nombre (máximo 80 caracteres).</small>
+              }
+            </label>
+            <label>Apellido<input [formField]="formulario.apellido" type="text" />
+              @if (formulario.apellido().touched() && formulario.apellido().invalid()) {
+                <small class="field-validation-error">Ingresá tu apellido (máximo 80 caracteres).</small>
+              }
+            </label>
+            <label>Nombre de usuario<input [formField]="formulario.nombreUsuario" type="text" />
+              @if (formulario.nombreUsuario().touched() && formulario.nombreUsuario().invalid()) {
+                <small class="field-validation-error">El usuario debe tener entre 3 y 30 caracteres.</small>
+              }
+            </label>
+            <label>Fecha de nacimiento<input [formField]="formulario.fechaNacimiento" type="date" />
+              @if (formulario.fechaNacimiento().touched() && formulario.fechaNacimiento().invalid()) {
+                <small class="field-validation-error">Ingresá tu fecha de nacimiento.</small>
+              }
+            </label>
+            <label class="field-wide">Descripción<textarea [formField]="formulario.descripcion" rows="3" placeholder="Contale algo a la comunidad"></textarea><small>Hasta 280 caracteres.</small></label>
             <label class="field-wide profile-file-input">Foto de perfil<input name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" /><small>{{ selectedImageName() || 'JPG, PNG o WEBP. Máximo 25 MB.' }}</small></label>
             <div class="form-actions field-wide">
               <button class="cancel-button" type="button" (click)="cancelEditing()">Cancelar</button>
-              <button class="save-button" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar cambios' }}</button>
+              <button class="save-button" type="submit" [disabled]="formulario().submitting()">{{ formulario().submitting() ? 'Guardando...' : 'Guardar cambios' }}</button>
             </div>
           </form>
         </section>
@@ -69,19 +85,34 @@
               [imageUrl]="post.imagenUrl"
               (detailsRequested)="openPublication(post)"
             >
-              <div class="comments-heading"><span>CONVERSACIÓN</span><span>{{ post.comentarios.length }} comentarios</span></div>
-              @if (post.comentarios.length) {
+              <div class="comments-heading"><span>CONVERSACIÓN</span><span>{{ post.cantidadComentarios }} comentarios</span></div>
+              @if (comentariosEstanCargando(post.id)) {
+                <p class="no-comments">Cargando comentarios...</p>
+              }
+              @if (errorDeComentarios(post.id)) {
+                <p class="no-comments" role="alert">{{ errorDeComentarios(post.id) }}</p>
+              }
+              @if (comentariosDe(post.id).length) {
                 <div class="comments-list">
-                  @for (comment of post.comentarios; track comment.id) {
+                  @for (comment of comentariosDe(post.id); track comment.id) {
                     <div class="comment-row">
-                      <span class="comment-avatar">{{ initials(comment.autor.nombre, comment.autor.apellido) }}</span>
-                      <div><strong>{{ comment.autor.nombre }} {{ comment.autor.apellido }}</strong><p>{{ comment.mensaje }}</p></div>
+                      <span class="comment-avatar">{{ comment.autor ? initials(comment.autor.nombre, comment.autor.apellido) : '?' }}</span>
+                      <div><strong>{{ comment.autor ? comment.autor.nombre + ' ' + comment.autor.apellido : 'Usuario' }}</strong><p>{{ comment.mensaje }}</p></div>
                       <time>{{ comment.createdAt | date: 'dd/MM, HH:mm' }}</time>
                     </div>
                   }
                 </div>
-              } @else {
+              } @else if (!comentariosEstanCargando(post.id) && !errorDeComentarios(post.id)) {
                 <p class="no-comments">Todavía no hay comentarios en esta publicación.</p>
+              }
+              @if (hayMasComentarios(post.id)) {
+                <button
+                  class="load-more-comments"
+                  type="button"
+                  aria-label="Cargar más comentarios"
+                  [disabled]="comentariosEstanCargando(post.id)"
+                  (click)="cargarMasComentarios(post.id)"
+                ><span aria-hidden="true">+</span></button>
               }
             </app-publication-card>
           }
@@ -105,8 +136,13 @@
 
   @if (selectedPublication(); as selected) {
     <app-publication-detail-modal
-      [post]="selected.post"
-      [comments]="selected.comments"
+      [post]="selected"
+      [comments]="comentariosDe(selected.id.toString())"
+      [loading]="comentariosEstanCargando(selected.id.toString())"
+      [hayMasComentarios]="hayMasComentarios(selected.id.toString())"
+      [error]="errorDeComentarios(selected.id.toString())"
+      [canComment]="false"
+      (solicitarMasComentarios)="cargarMasComentarios(selected.id.toString())"
       (closed)="closePublication()"
     />
   }

@@ -26,47 +26,27 @@ export class UsuariosService {
       .limit(3)
       .lean();
 
-    const comentarios = publicaciones.length
-      ? await this.comentarioModel
-          .find({
-            publicacionId: { $in: publicaciones.map((publicacion) => publicacion._id) },
-            eliminadaEn: null,
-          })
-          .sort({ createdAt: 1 })
-          .populate('autorId', 'nombre apellido nombreUsuario')
-          .lean()
-      : [];
+    // El perfil muestra solo los últimos comentarios de cada publicación.
+    const publicacionesConCantidad = await Promise.all(
+      publicaciones.map(async (publicacion) => {
+        const cantidadComentarios = await this.comentarioModel.countDocuments({
+          publicacionId: publicacion._id,
+          eliminadaEn: null,
+        });
+
+        return { publicacion, cantidadComentarios };
+      }),
+    );
 
     return {
       usuario: this.toPublicUser(usuario),
-      publicaciones: publicaciones.map((publicacion) => ({
+      publicaciones: publicacionesConCantidad.map(({ publicacion, cantidadComentarios }) => ({
         id: publicacion._id.toString(),
         titulo: publicacion.titulo,
         descripcion: publicacion.descripcion,
         imagenUrl: publicacion.imagenUrl,
         createdAt: publicacion.createdAt,
-        comentarios: comentarios
-          .filter((comentario) => comentario.publicacionId.toString() === publicacion._id.toString())
-          .map((comentario) => {
-            const autor = comentario.autorId as unknown as {
-              _id: Types.ObjectId;
-              nombre: string;
-              apellido: string;
-              nombreUsuario: string;
-            };
-
-            return {
-              id: comentario._id.toString(),
-              mensaje: comentario.mensaje,
-              createdAt: comentario.createdAt,
-              autor: {
-                id: autor._id.toString(),
-                nombre: autor.nombre,
-                apellido: autor.apellido,
-                nombreUsuario: autor.nombreUsuario,
-              },
-            };
-          }),
+        cantidadComentarios,
       })),
     };
   }

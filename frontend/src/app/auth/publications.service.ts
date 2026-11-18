@@ -33,7 +33,16 @@ export interface PublicationComment {
   id: string;
   mensaje: string;
   createdAt: string;
+  modificado: boolean;
   autor: CreatedPublication['autor'] | null;
+}
+
+export interface CommentPage {
+  items: PublicationComment[];
+  pagina: number;
+  cantidad: number;
+  total: number;
+  paginasTotales: number;
 }
 
 export interface PublicationPage {
@@ -49,7 +58,12 @@ export class PublicationsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${API_BASE_URL}/api/publicaciones`;
 
-  list(pagina: number, cantidad = 5, orden: 'fecha' | 'me-gusta' = 'fecha', usuario?: string): Observable<PublicationPage> {
+  listarPublicaciones(
+    pagina: number,
+    cantidad = 5,
+    orden: 'fecha' | 'me-gusta' = 'fecha',
+    usuario?: string,
+  ): Observable<PublicationPage> {
     const params: Record<string, string | number> = { pagina, cantidad, orden };
     if (usuario) {
       params['usuario'] = usuario;
@@ -57,35 +71,46 @@ export class PublicationsService {
     return this.http.get<PublicationPage>(this.apiUrl, { params });
   }
 
-  myLikes(): Observable<{ publicacionIds: string[] }> {
+  obtenerMisMeGustas(): Observable<{ publicacionIds: string[] }> {
     return this.http.get<{ publicacionIds: string[] }>(`${this.apiUrl}/me-gustas`);
   }
 
-  addLike(publicationId: string): Observable<{ liked: boolean; likes: number }> {
+  agregarMeGusta(publicationId: string): Observable<{ liked: boolean; likes: number }> {
     return this.http.post<{ liked: boolean; likes: number }>(`${this.apiUrl}/${publicationId}/me-gusta`, {});
   }
 
-  removeLike(publicationId: string): Observable<{ liked: boolean; likes: number }> {
+  quitarMeGusta(publicationId: string): Observable<{ liked: boolean; likes: number }> {
     return this.http.delete<{ liked: boolean; likes: number }>(`${this.apiUrl}/${publicationId}/me-gusta`);
   }
 
-  listComments(publicationId: string): Observable<PublicationComment[]> {
-    return this.http.get<PublicationComment[]>(`${this.apiUrl}/${publicationId}/comentarios`);
+  listarComentarios(publicationId: string, pagina = 1, cantidad = 5): Observable<CommentPage> {
+    const params = { pagina, cantidad };
+    return this.http.get<CommentPage>(`${this.apiUrl}/${publicationId}/comentarios`, { params });
   }
 
-  createComment(publicationId: string, mensaje: string): Observable<PublicationComment> {
+  crearComentario(publicationId: string, mensaje: string): Observable<PublicationComment> {
     return this.http.post<PublicationComment>(`${this.apiUrl}/${publicationId}/comentarios`, { mensaje });
   }
 
-  delete(publicationId: string): Observable<{ message: string }> {
+  editarComentario(publicationId: string, comentarioId: string, mensaje: string): Observable<PublicationComment> {
+    return this.http.patch<PublicationComment>(`${this.apiUrl}/${publicationId}/comentarios/${comentarioId}`, { mensaje });
+  }
+
+  eliminarPublicacion(publicationId: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${publicationId}`);
   }
 
-  create(titulo: string, descripcion: string, imagen?: File): Observable<CreatedPublication> {
+  crearPublicacion(
+    titulo: string,
+    descripcion: string,
+    imagen?: File,
+  ): Observable<CreatedPublication> {
     const body = new FormData();
     body.append('titulo', titulo);
     body.append('descripcion', descripcion);
-    if (imagen) body.append('imagen', imagen);
+    if (imagen) {
+      body.append('imagen', imagen);
+    }
     return this.http.post<CreatedPublication>(this.apiUrl, body);
   }
 }

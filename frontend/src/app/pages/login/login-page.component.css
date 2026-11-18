@@ -207,3 +207,9 @@
   .register-field .textarea-wrap, .register-field .file-input-wrap { min-height: 52px; }
   .form-panel--register .terms { margin-top: 4px; }
 }
+.field-validation-error {
+  display: block;
+  margin-top: 5px;
+  color: #f29696;
+  font-size: 11px;
+}

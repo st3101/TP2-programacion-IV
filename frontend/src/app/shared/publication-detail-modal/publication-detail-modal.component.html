@@ -59,25 +59,38 @@
             <p>{{ comment.mensaje }}</p>
           </article>
         } @empty {
-          @if (!loading) {
+          @if (!loading && !error) {
             <p class="comment-status">Todavía no hay comentarios. ¡Sé el primero!</p>
           }
         }
+        @if (hayMasComentarios) {
+          <button
+            class="load-more-comments"
+            type="button"
+            aria-label="Cargar más comentarios"
+            [disabled]="loading"
+            (click)="solicitarMasComentarios.emit()"
+          >
+            <span aria-hidden="true">+</span>
+          </button>
+        }
       </section>
 
-      <form class="comment-form detail-comment-form" (submit)="$event.preventDefault(); commentSubmitted.emit()">
-        <label class="visually-hidden" [for]="'detail-comment-' + post.id">Escribir un comentario</label>
-        <textarea
-          [id]="'detail-comment-' + post.id"
-          maxlength="3000"
-          placeholder="Escribí un comentario..."
-          [value]="draft"
-          (input)="updateDraft($event)"
-        ></textarea>
-        <button type="submit" [disabled]="!draft.trim() || submitting || loading">
-          {{ submitting ? 'Enviando...' : 'Comentar' }}
-        </button>
-      </form>
+      @if (canComment) {
+        <form class="comment-form detail-comment-form" (submit)="sendComment($event)">
+          <label class="visually-hidden" [for]="'detail-comment-' + post.id">Escribir un comentario</label>
+          <textarea
+            [id]="'detail-comment-' + post.id"
+            maxlength="3000"
+            placeholder="Escribí un comentario..."
+            [value]="draft"
+            (input)="updateDraft($event)"
+          ></textarea>
+          <button type="submit" [disabled]="!draft.trim() || submitting">
+            {{ submitting ? 'Enviando...' : 'Comentar' }}
+          </button>
+        </form>
+      }
     </div>
   </section>
 </div>

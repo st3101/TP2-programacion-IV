@@ -3,20 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../api-base-url';
 
-export interface ProfileComment {
-  id: string;
-  mensaje: string;
-  createdAt: string;
-  autor: { id: string; nombre: string; apellido: string; nombreUsuario: string };
-}
-
 export interface ProfilePost {
   id: string;
   titulo: string;
   descripcion: string;
   imagenUrl: string;
   createdAt: string;
-  comentarios: ProfileComment[];
+  cantidadComentarios: number;
 }
 
 export interface UserProfile {
