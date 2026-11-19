@@ -12,16 +12,16 @@
           <h2 id="create-user-title">Crear usuario</h2>
         </div>
       </div>
-      <form class="create-user-form" (submit)="crearUsuario($event)">
-        <label>Nombre<input name="nombre" type="text" maxlength="80" autocomplete="given-name" required /></label>
-        <label>Apellido<input name="apellido" type="text" maxlength="80" autocomplete="family-name" required /></label>
-        <label>Correo<input name="correo" type="email" maxlength="254" autocomplete="email" required /></label>
-        <label>Nombre de usuario<input name="nombreUsuario" type="text" minlength="3" maxlength="30" autocomplete="username" required /></label>
-        <label>Fecha de nacimiento<input name="fechaNacimiento" type="date" required /></label>
-        <label>Descripción breve<input name="descripcion" type="text" maxlength="280" /></label>
-        <label>Contraseña<input name="password" type="password" minlength="8" maxlength="72" pattern="(?=.*\p{Lu})(?=.*\d).{8,72}" title="Mínimo 8 caracteres, una mayúscula y un número." autocomplete="new-password" required /></label>
-        <label>Repetir contraseña<input name="repetirPassword" type="password" maxlength="72" autocomplete="new-password" required /></label>
-        <label class="image-field">Imagen de perfil (opcional)<input name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" /></label>
+      <form class="create-user-form" novalidate (submit)="crearUsuario($event)">
+        <label>Nombre<input name="nombre" type="text" maxlength="80" autocomplete="given-name" required (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('nombre')) { <small class="field-error">{{ errorDeCampo('nombre') }}</small> }</label>
+        <label>Apellido<input name="apellido" type="text" maxlength="80" autocomplete="family-name" required (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('apellido')) { <small class="field-error">{{ errorDeCampo('apellido') }}</small> }</label>
+        <label>Correo<input name="correo" type="email" maxlength="254" autocomplete="email" required (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('correo')) { <small class="field-error">{{ errorDeCampo('correo') }}</small> }</label>
+        <label>Nombre de usuario<input name="nombreUsuario" type="text" minlength="3" maxlength="30" autocomplete="username" required (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('nombreUsuario')) { <small class="field-error">{{ errorDeCampo('nombreUsuario') }}</small> }</label>
+        <label>Fecha de nacimiento<input name="fechaNacimiento" type="date" required (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('fechaNacimiento')) { <small class="field-error">{{ errorDeCampo('fechaNacimiento') }}</small> }</label>
+        <label>Descripción breve<input name="descripcion" type="text" maxlength="280" (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('descripcion')) { <small class="field-error">{{ errorDeCampo('descripcion') }}</small> }</label>
+        <label>Contraseña<input name="password" type="password" minlength="8" maxlength="72" autocomplete="new-password" required (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('password')) { <small class="field-error">{{ errorDeCampo('password') }}</small> }</label>
+        <label>Repetir contraseña<input name="repetirPassword" type="password" maxlength="72" autocomplete="new-password" required (input)="validarCampo($event)" (blur)="validarCampo($event, true)" />@if (errorDeCampo('repetirPassword')) { <small class="field-error">{{ errorDeCampo('repetirPassword') }}</small> }</label>
+        <label class="image-field">Imagen de perfil (opcional)<input name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" (change)="validarImagen($event)" />@if (errorDeCampo('imagenPerfil')) { <small class="field-error">{{ errorDeCampo('imagenPerfil') }}</small> }</label>
 
         <fieldset class="profile-choice">
           <legend>Perfil del usuario</legend>
@@ -55,11 +55,11 @@
           <tbody>
             @for (usuario of usuarios(); track usuario.id) {
               <tr>
-                <td><strong>{{ usuario.nombre }} {{ usuario.apellido }}</strong><small>&#64;{{ usuario.nombreUsuario }}</small></td>
+                <td><strong>{{ usuario.nombre + ' ' + usuario.apellido | nombrePropio }}</strong><small>&#64;{{ usuario.nombreUsuario }}</small></td>
                 <td>{{ usuario.correo }}</td>
                 <td>{{ usuario.perfil }}</td>
                 <td>{{ usuario.habilitado ? 'Habilitado' : 'Deshabilitado' }}</td>
-                <td>{{ usuario.creadoEn | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ usuario.creadoEn | fechaLobby }}</td>
                 <td>
                   <button
                     class="user-status-button"

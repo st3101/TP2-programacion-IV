@@ -4,10 +4,11 @@ import { FormField, form, pattern, required, submit } from '@angular/forms/signa
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
+import { EnfocarAlCargarDirective } from '../../shared/directives/enfocar-al-cargar.directive';
 
 @Component({
   selector: 'app-login-page',
-  imports: [FormField, RouterLink],
+  imports: [FormField, RouterLink, EnfocarAlCargarDirective],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })

@@ -21,14 +21,14 @@
           }
           <div class="identity-copy">
             <span class="username">&#64;{{ data.usuario.nombreUsuario }}</span>
-            <h2>{{ data.usuario.nombre }} {{ data.usuario.apellido }}</h2>
+            <h2>{{ data.usuario.nombre + ' ' + data.usuario.apellido | nombrePropio }}</h2>
             <p>{{ data.usuario.descripcion || 'Todavía no agregaste una descripción.' }}</p>
           </div>
           <button class="edit-button" type="button" (click)="startEditing()">Editar perfil <span aria-hidden="true">↗</span></button>
         </div>
         <div class="profile-facts">
           <div><span class="fact-label">CORREO</span><strong>{{ data.usuario.correo }}</strong></div>
-          <div><span class="fact-label">FECHA DE NACIMIENTO</span><strong>{{ data.usuario.fechaNacimiento | date: 'dd/MM/yyyy' }}</strong></div>
+          <div><span class="fact-label">FECHA DE NACIMIENTO</span><strong>{{ data.usuario.fechaNacimiento | fechaLobby }}</strong></div>
         </div>
       </section>
 
@@ -78,42 +78,92 @@
         <section class="post-list" aria-label="Mis últimas tres publicaciones">
           @for (post of data.publicaciones; track post.id) {
             <app-publication-card
-              variant="profile"
+              variant="feed"
+              [id]="post.id"
               [title]="post.titulo"
               [description]="post.descripcion"
-              [timeLabel]="(post.createdAt | date: 'dd/MM/yyyy, HH:mm') ?? ''"
+              [author]="data.usuario.nombre + ' ' + data.usuario.apellido"
+              [handle]="data.usuario.nombreUsuario"
+              [initials]="initials(data.usuario.nombre, data.usuario.apellido)"
+              game="Comunidad"
+              [mostrarJuego]="false"
+              [timeLabel]="post.createdAt | fechaLobby: 'fechaHora'"
               [imageUrl]="post.imagenUrl"
               (detailsRequested)="openPublication(post)"
             >
-              <div class="comments-heading"><span>CONVERSACIÓN</span><span>{{ post.cantidadComentarios }} comentarios</span></div>
-              @if (comentariosEstanCargando(post.id)) {
-                <p class="no-comments">Cargando comentarios...</p>
-              }
-              @if (errorDeComentarios(post.id)) {
-                <p class="no-comments" role="alert">{{ errorDeComentarios(post.id) }}</p>
-              }
-              @if (comentariosDe(post.id).length) {
-                <div class="comments-list">
-                  @for (comment of comentariosDe(post.id); track comment.id) {
-                    <div class="comment-row">
-                      <span class="comment-avatar">{{ comment.autor ? initials(comment.autor.nombre, comment.autor.apellido) : '?' }}</span>
-                      <div><strong>{{ comment.autor ? comment.autor.nombre + ' ' + comment.autor.apellido : 'Usuario' }}</strong><p>{{ comment.mensaje }}</p></div>
-                      <time>{{ comment.createdAt | date: 'dd/MM, HH:mm' }}</time>
-                    </div>
-                  }
+              <footer class="profile-post-footer">
+                <span class="profile-post-stat">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M16.8 4.2a4.1 4.1 0 0 0-5.8 0L10 5.3 8.9 4.2a4.1 4.1 0 0 0-5.8 5.8L10 17l6.8-7a4.1 4.1 0 0 0 0-5.8Z" />
+                  </svg>
+                  <span>{{ post.cantidadMeGusta }} Me gusta</span>
+                </span>
+                <span class="profile-post-stat">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M16.8 9.6a6.8 6.8 0 0 1-7 6.7 7.2 7.2 0 0 1-3.1-.7L3 17l1.2-3.1a6.5 6.5 0 0 1-1.2-3.8 6.8 6.8 0 0 1 7-6.7 6.8 6.8 0 0 1 6.8 6.2Z" />
+                  </svg>
+                  <span>{{ post.cantidadComentarios }} comentarios</span>
+                </span>
+                <div class="profile-post-delete">
+                @if (publicacionAEliminar() === post.id) {
+                  <span>¿Eliminar publicación?</span>
+                  <button type="button" (click)="cancelarEliminarPublicacion()" [disabled]="eliminandoPublicacion() !== ''">Cancelar</button>
+                  <button
+                    class="profile-post-delete-confirm"
+                    type="button"
+                    (click)="eliminarPublicacion(post.id)"
+                    [disabled]="eliminandoPublicacion() !== ''"
+                  >
+                    @if (eliminandoPublicacion() === post.id) {
+                      Eliminando...
+                    } @else {
+                      Sí, eliminar
+                    }
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    (click)="solicitarEliminarPublicacion(post.id)"
+                    [disabled]="eliminandoPublicacion() !== ''"
+                  >Eliminar</button>
+                }
                 </div>
-              } @else if (!comentariosEstanCargando(post.id) && !errorDeComentarios(post.id)) {
-                <p class="no-comments">Todavía no hay comentarios en esta publicación.</p>
-              }
-              @if (hayMasComentarios(post.id)) {
-                <button
-                  class="load-more-comments"
-                  type="button"
-                  aria-label="Cargar más comentarios"
-                  [disabled]="comentariosEstanCargando(post.id)"
-                  (click)="cargarMasComentarios(post.id)"
-                ><span aria-hidden="true">+</span></button>
-              }
+                <span class="profile-post-footer-note">UNA PARTIDA COMPARTIDA</span>
+              </footer>
+              <section class="profile-comment-thread" [attr.aria-label]="'Comentarios de ' + post.titulo">
+                @if (comentariosEstanCargando(post.id)) {
+                  <p class="profile-comment-status">Cargando comentarios...</p>
+                }
+                @if (errorDeComentarios(post.id)) {
+                  <p class="profile-comment-error" role="alert">{{ errorDeComentarios(post.id) }}</p>
+                }
+                @if (comentariosDe(post.id).length) {
+                  <div class="profile-comments-list">
+                    @for (comment of comentariosDe(post.id); track comment.id) {
+                      <article class="profile-comment-item">
+                        <header>
+                          <strong>{{ comment.autor ? (comment.autor.nombre + ' ' + comment.autor.apellido | nombrePropio) : 'Usuario' }}</strong>
+                          @if (comment.autor) { <span>&#64;{{ comment.autor.nombreUsuario }}</span> }
+                          <time>{{ comment.createdAt | fechaLobby: 'tiempoRelativo' }}</time>
+                        </header>
+                        <p>{{ comment.mensaje }} @if (comment.modificado) { <small class="comment-edited-label">Editado</small> }</p>
+                      </article>
+                    }
+                  </div>
+                } @else if (!comentariosEstanCargando(post.id) && !errorDeComentarios(post.id)) {
+                  <p class="profile-comment-status">Todavía no hay comentarios. ¡Sé el primero!</p>
+                }
+                @if (hayMasComentarios(post.id)) {
+                  <button class="load-more-comments" type="button" aria-label="Cargar más comentarios" [disabled]="comentariosEstanCargando(post.id)" (click)="cargarMasComentarios(post.id)"><span aria-hidden="true">+</span></button>
+                }
+                <app-publication-comment-form
+                  [id]="post.id"
+                  [texto]="textoComentario(post.id)"
+                  [enviando]="comentarioSeEstaEnviando(post.id)"
+                  (textoCambiado)="actualizarBorradorComentario(post.id, $event)"
+                  (enviado)="enviarComentario(post.id)"
+                />
+              </section>
             </app-publication-card>
           }
         </section>
@@ -141,8 +191,12 @@
       [loading]="comentariosEstanCargando(selected.id.toString())"
       [hayMasComentarios]="hayMasComentarios(selected.id.toString())"
       [error]="errorDeComentarios(selected.id.toString())"
-      [canComment]="false"
+      [draft]="textoComentario(selected.id.toString())"
+      [submitting]="comentarioSeEstaEnviando(selected.id.toString())"
+      [canComment]="true"
       (solicitarMasComentarios)="cargarMasComentarios(selected.id.toString())"
+      (draftChanged)="actualizarBorradorComentario(selected.id.toString(), $event)"
+      (commentSubmitted)="enviarComentario(selected.id.toString())"
       (closed)="closePublication()"
     />
   }

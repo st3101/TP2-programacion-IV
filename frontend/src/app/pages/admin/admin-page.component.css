@@ -8,6 +8,7 @@ h1 { margin: 8px 0; color: var(--color-mist); font-size: clamp(32px, 5vw, 48px);
 .create-user-heading h2 { margin: 5px 0 0; color: var(--color-mist); font-size: 20px; font-weight: 500; }
 .create-user-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
 .create-user-form > label { display: grid; gap: 7px; color: var(--color-smoke); font-size: 12px; }
+.field-error { color: #ff9999; font-size: 11px; line-height: 1.4; }
 .create-user-form input:not([type="radio"]) { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 7px; background: #111214; color: var(--color-mist); font: inherit; }
 .create-user-form input[type="file"] { padding: 8px; }
 .image-field, .profile-choice, .create-user-button, .create-user-message { grid-column: 1 / -1; }

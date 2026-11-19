@@ -6,6 +6,7 @@ import { AdminGuard } from '../auth/admin.guard';
 import { Comentario, ComentarioSchema } from '../database/schemas/comentario.schema';
 import { Publicacion, PublicacionSchema } from '../database/schemas/publicacion.schema';
 import { Usuario, UsuarioSchema } from '../database/schemas/usuario.schema';
+import { MeGusta, MeGustaSchema } from '../database/schemas/me-gusta.schema';
 import { UsuariosController } from './usuarios.controller';
 import { UsuariosService } from './usuarios.service';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
@@ -18,6 +19,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
       { name: Usuario.name, schema: UsuarioSchema },
       { name: Publicacion.name, schema: PublicacionSchema },
       { name: Comentario.name, schema: ComentarioSchema },
+      { name: MeGusta.name, schema: MeGustaSchema },
     ]),
   ],
   controllers: [UsuariosController],

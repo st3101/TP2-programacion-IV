@@ -60,15 +60,26 @@
 .post-count { color: var(--color-mist); font-family: var(--font-mono); font-size: 15px; }
 .post-count span { color: var(--color-smoke); font-size: 10px; }
 .post-list { display: grid; gap: 13px; }
+.profile-post-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding-top: 15px; }
+.profile-post-stat { display: inline-flex; min-height: 28px; align-items: center; gap: 7px; color: var(--color-smoke); font-size: 11px; }
+.profile-post-stat svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
+.profile-post-delete { display: flex; align-items: center; gap: 8px; color: var(--color-smoke); font-size: 10px; }
+.profile-post-delete button { padding: 6px 9px; border: 1px solid rgb(255 255 255 / 14%); border-radius: 6px; background: transparent; color: var(--color-smoke); cursor: pointer; font: inherit; }
+.profile-post-delete button:hover:not(:disabled) { color: var(--color-mist); }
+.profile-post-delete .profile-post-delete-confirm { border-color: rgb(255 99 99 / 40%); color: #ff9999; }
+.profile-post-delete button:disabled { cursor: wait; opacity: .55; }
+.profile-post-footer-note { margin-left: auto; color: #68696b; font-family: var(--font-mono); font-size: 8px; letter-spacing: .12em; }
 .comments-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 17px; padding-top: 13px; border-top: 1px solid rgb(255 255 255 / 8%); color: var(--color-smoke); font-family: var(--font-mono); font-size: 8px; letter-spacing: .08em; }
-.comment-row time { color: #68696b; font-size: 9px; letter-spacing: 0; }
-.comments-heading span:last-child { font-family: var(--font-ui); font-size: 9px; letter-spacing: 0; }
-.comments-list { display: grid; gap: 11px; margin-top: 12px; }
-.comment-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: start; gap: 9px; }
-.comment-avatar { display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid rgb(255 255 255 / 12%); border-radius: 50%; background: #242426; color: #ddd; font-family: var(--font-mono); font-size: 8px; }
-.comment-row strong { color: #d3d2d2; font-size: 10px; font-weight: 550; }
-.comment-row p { margin: 4px 0 0; color: var(--color-ash); font-size: 10px; line-height: 1.55; white-space: pre-wrap; }
-.no-comments { margin: 12px 0 0; color: var(--color-smoke); font-size: 10px; }
+.profile-comment-thread { display: grid; gap: 12px; margin-top: 16px; padding: 16px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 9px; background: rgb(0 0 0 / 13%); }
+.profile-comments-list { display: grid; gap: 12px; }
+.profile-comment-item { padding-bottom: 11px; border-bottom: 1px solid rgb(255 255 255 / 7%); }
+.profile-comment-item header { display: flex; align-items: baseline; gap: 8px; color: var(--color-smoke); font-size: 10px; }
+.profile-comment-item header strong { color: var(--color-mist); font-weight: 500; }
+.profile-comment-item header time { margin-left: auto; color: var(--color-smoke); }
+.profile-comment-item p { margin: 7px 0 0; color: var(--color-ash); font-size: 12px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.comment-edited-label { display: inline-block; margin-left: 6px; color: #d99589; font-size: 10px; font-style: italic; }
+.profile-comment-status, .profile-comment-error { margin: 0; color: var(--color-smoke); font-size: 11px; }
+.profile-comment-error { color: #ff9999; }
 .load-more-comments { justify-self: center; display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 1px solid rgb(255 255 255 / 16%); border-radius: 50%; background: rgb(255 255 255 / 5%); color: var(--color-mist); cursor: pointer; font: inherit; font-size: 20px; line-height: 1; }
 .load-more-comments:disabled { cursor: wait; opacity: .55; }
 .load-more-comments span { display: block; line-height: 1; transform: translateY(-2px); }
@@ -116,8 +127,9 @@
   .profile-facts strong { font-size: 10px; }
   .edit-form { grid-template-columns: 1fr; }
   .field-wide { grid-column: auto; }
-  .comment-row { grid-template-columns: 25px minmax(0, 1fr); }
-  .comment-row time { grid-column: 2; }
+  .profile-comment-item header { flex-wrap: wrap; }
+  .profile-post-footer { gap: 12px; }
+  .profile-post-footer-note { flex-basis: 100%; margin-left: 0; text-align: right; }
 }
 .field-validation-error {
   color: #f29696;

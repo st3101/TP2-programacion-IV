@@ -23,22 +23,30 @@
         </div>
       </div>
     } @else if (tipo === 'lineas') {
-      <div class="line-chart" role="img" [attr.aria-label]="titulo + ', gráfico de líneas'">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          <line x1="0" y1="25" x2="100" y2="25" class="line-grid" />
-          <line x1="0" y1="50" x2="100" y2="50" class="line-grid" />
-          <line x1="0" y1="75" x2="100" y2="75" class="line-grid" />
-          <line x1="0" y1="90" x2="100" y2="90" class="line-axis" />
-          <polyline [attr.points]="puntosLinea()" class="line-path" />
-        </svg>
-        @for (elemento of elementos; track elemento.id; let indice = $index) {
-          <span class="line-point" [style.left.%]="posicionX(indice)" [style.top.%]="posicionY(elemento.cantidad)" [attr.title]="elemento.etiqueta + ': ' + elemento.cantidad + ' comentarios'"></span>
-        }
-      </div>
-      <div class="line-axis-labels" aria-hidden="true">
-        @for (etiqueta of etiquetasDelEje(); track etiqueta.posicion) {
-          <span [style.left.%]="etiqueta.posicion">{{ etiqueta.texto }}</span>
-        }
+      <div class="line-chart">
+        <div class="line-y-labels" aria-hidden="true">
+          <span>{{ valorMaximo() }}</span>
+          <span>{{ valorIntermedio() }}</span>
+          <span>0</span>
+        </div>
+        <div class="line-plot" role="img" [attr.aria-label]="titulo + ', gráfico de líneas'">
+          <div class="line-graph">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="0" y1="15" x2="100" y2="15" class="line-grid" />
+              <line x1="0" y1="52.5" x2="100" y2="52.5" class="line-grid" />
+              <line x1="0" y1="90" x2="100" y2="90" class="line-axis" />
+              <polyline [attr.points]="puntosLinea()" class="line-path" />
+            </svg>
+            @for (elemento of elementos; track elemento.id; let indice = $index) {
+              <span class="line-point" [style.left.%]="posicionX(indice)" [style.top.%]="posicionY(elemento.cantidad)" [attr.title]="elemento.etiqueta + ': ' + elemento.cantidad + ' comentarios'"></span>
+            }
+          </div>
+          <div class="line-axis-labels" aria-hidden="true">
+            @for (etiqueta of etiquetasDelEje(); track etiqueta.posicion) {
+              <span [style.left.%]="etiqueta.posicion">{{ etiqueta.texto }}</span>
+            }
+          </div>
+        </div>
       </div>
     } @else {
       <div class="chart" role="list" [attr.aria-label]="titulo">

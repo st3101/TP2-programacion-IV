@@ -49,6 +49,7 @@
         </svg>
         <span class="visually-hidden">Filtrar por jugador</span>
         <input
+          appLimpiarEspacios
           type="search"
           placeholder="Buscar jugador..."
           [value]="authorFilter()"
@@ -177,19 +178,13 @@
                   <span aria-hidden="true">+</span>
                 </button>
               }
-              <form class="comment-form" (submit)="enviarComentario(post.id, $event)">
-                <label class="visually-hidden" [for]="'comment-' + post.id">Escribir un comentario</label>
-                <textarea
-                  [id]="'comment-' + post.id"
-                  placeholder="Escribí un comentario..."
-                  maxlength="3000"
-                  [value]="textoComentario(post.id)"
-                  (input)="actualizarBorradorComentario(post.id, $event)"
-                ></textarea>
-                <button type="submit" [disabled]="!textoComentario(post.id).trim() || seEstaEnviandoComentario(post.id)">
-                  {{ seEstaEnviandoComentario(post.id) ? 'Enviando...' : 'Comentar' }}
-                </button>
-              </form>
+              <app-publication-comment-form
+                [id]="post.id.toString()"
+                [texto]="textoComentario(post.id)"
+                [enviando]="seEstaEnviandoComentario(post.id)"
+                (textoCambiado)="actualizarTextoComentario(post.id, $event)"
+                (enviado)="enviarComentario(post.id)"
+              />
           </section>
         </app-publication-card>
       } @empty {
@@ -215,7 +210,7 @@
       <nav class="pagination" aria-label="Páginas de publicaciones">
         <button
           type="button"
-          (click)="cargarPagina(paginaActual() - 1)"
+          (click)="cambiarPagina(paginaActual() - 1)"
           [disabled]="paginaActual() === 1 || loadingFeed()"
         >
           Anterior
@@ -225,7 +220,7 @@
 
         <button
           type="button"
-          (click)="cargarPagina(paginaActual() + 1)"
+          (click)="cambiarPagina(paginaActual() + 1)"
           [disabled]="paginaActual() === paginasTotales() || loadingFeed()"
         >
           Siguiente

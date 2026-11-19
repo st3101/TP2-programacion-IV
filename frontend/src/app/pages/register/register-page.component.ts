@@ -43,6 +43,7 @@ export class RegisterPageComponent {
     maxLength(campos.username, 30);
     required(campos.email);
     email(campos.email);
+    pattern(campos.email, /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
     required(campos.birthdate);
     required(campos.password);
     pattern(campos.password, /^(?=.*\p{Lu})(?=.*\d).{8,72}$/u);

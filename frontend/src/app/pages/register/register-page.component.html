@@ -69,7 +69,7 @@
           <div class="register-field">
             <label class="field-label" for="email">Correo electrónico</label>
             <div class="input-wrap"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2"/><path d="m3.5 5.5 6.5 5 6.5-5"/></svg><input id="email" [formField]="formulario.email" type="email" autocomplete="email" placeholder="vos@ejemplo.com" /></div>
-            @if (formulario.email().touched() && formulario.email().invalid()) { <small class="field-validation-error">Ingresá un correo electrónico válido.</small> }
+            @if (formulario.email().touched() && formulario.email().invalid()) { <small class="field-validation-error">El correo debe tener un dominio y una extensión, por ejemplo nombre@ejemplo.com.</small> }
           </div>
           <div class="register-field">
             <label class="field-label" for="birthdate">Fecha de nacimiento</label>

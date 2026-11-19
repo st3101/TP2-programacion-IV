@@ -1,0 +1,13 @@
+<form class="comment-form" (submit)="enviar($event)">
+  <textarea
+    [id]="'comentario-' + id"
+    aria-label="Comentario"
+    placeholder="Escribí un comentario..."
+    maxlength="3000"
+    [value]="texto"
+    (input)="cambiarTexto($event)"
+  ></textarea>
+  <button type="submit" [disabled]="!texto.trim() || enviando">
+    {{ enviando ? 'Enviando...' : 'Comentar' }}
+  </button>
+</form>

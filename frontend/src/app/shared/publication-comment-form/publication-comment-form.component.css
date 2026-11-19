@@ -1,0 +1,5 @@
+.comment-form { display: flex; align-items: flex-end; gap: 10px; margin-top: 14px; }
+.comment-form textarea { min-height: 42px; max-height: 120px; flex: 1; resize: vertical; padding: 10px 12px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 7px; outline: 0; background: rgb(255 255 255 / 3%); color: var(--color-mist); font: inherit; font-size: 12px; }
+.comment-form textarea:focus { border-color: rgb(255 99 99 / 55%); }
+.comment-form button { min-height: 38px; min-width: 78px; padding: 0 13px; border: 1px solid var(--color-mist); border-radius: 7px; background: var(--color-mist); color: var(--color-iron); cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.comment-form button:disabled { cursor: not-allowed; opacity: .5; }

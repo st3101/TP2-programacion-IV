@@ -1,7 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { NombrePropioPipe } from '../pipes/nombre-propio.pipe';
+import { ResaltarAlPasarDirective } from '../directives/resaltar-al-pasar.directive';
 
 @Component({
   selector: 'app-publication-card',
+  imports: [NombrePropioPipe, ResaltarAlPasarDirective],
   templateUrl: './publication-card.component.html',
   styleUrl: './publication-card.component.css',
 })
@@ -15,6 +18,7 @@ export class PublicationCardComponent {
   @Input() initials = '';
   @Input() avatarTone: 'ember' | 'stone' | 'plum' = 'stone';
   @Input() game = 'Comunidad';
+  @Input() mostrarJuego = true;
   @Input() timeLabel = '';
   @Input() imageUrl = '';
   @Input() art: 'underworld' | 'afterlight' | 'newdawn' = 'underworld';

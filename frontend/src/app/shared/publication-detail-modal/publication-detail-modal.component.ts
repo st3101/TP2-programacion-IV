@@ -1,5 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { PublicationComment } from '../../auth/publications.service';
+import { NombrePropioPipe } from '../pipes/nombre-propio.pipe';
+import { PluralizarPipe } from '../pipes/pluralizar.pipe';
 
 export interface PublicationDetailPost {
   id: number | string;
@@ -17,6 +19,7 @@ export interface PublicationDetailPost {
 
 @Component({
   selector: 'app-publication-detail-modal',
+  imports: [NombrePropioPipe, PluralizarPipe],
   templateUrl: './publication-detail-modal.component.html',
   styleUrl: './publication-detail-modal.component.css',
 })

@@ -83,6 +83,20 @@ export class AdminStatisticsChartComponent {
     return 90 - (cantidad / cantidadMayor) * 75;
   }
 
+  protected valorMaximo(): number {
+    let cantidadMayor = 0;
+    for (const elemento of this.elementos) {
+      if (elemento.cantidad > cantidadMayor) {
+        cantidadMayor = elemento.cantidad;
+      }
+    }
+    return cantidadMayor;
+  }
+
+  protected valorIntermedio(): number {
+    return this.valorMaximo() / 2;
+  }
+
   protected etiquetasDelEje(): EtiquetaEje[] {
     if (this.elementos.length === 0) {
       return [];

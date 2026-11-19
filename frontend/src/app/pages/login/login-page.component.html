@@ -49,7 +49,7 @@
 
       <form class="login-form" (submit)="onSubmit($event)">
         <label class="field-label" for="identificador">Nombre de usuario</label>
-        <div class="input-wrap"><span class="input-prefix" aria-hidden="true">&#64;</span><input id="identificador" [formField]="formulario.identificador" type="text" autocomplete="username" placeholder="Usuario" /></div>
+        <div class="input-wrap"><span class="input-prefix" aria-hidden="true">&#64;</span><input appEnfocarAlCargar id="identificador" [formField]="formulario.identificador" type="text" autocomplete="username" placeholder="Usuario" /></div>
         @if (formulario.identificador().touched() && formulario.identificador().invalid()) {
           <small class="form-message">Ingresá tu nombre de usuario.</small>
         }

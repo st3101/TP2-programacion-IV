@@ -25,8 +25,15 @@
 .pie-legend-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pie-legend-row > span:last-child { color: var(--color-ash); }
 .pie-color { width: 10px; height: 10px; border-radius: 50%; }
-.line-chart { position: relative; height: 220px; }
-.line-chart svg { width: 100%; height: 100%; overflow: visible; }
+.line-chart { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 8px; height: 220px; }
+.line-y-labels { position: relative; height: 195px; color: var(--color-smoke); font-size: 11px; text-align: right; }
+.line-y-labels span { position: absolute; right: 0; transform: translateY(-50%); }
+.line-y-labels span:first-child { top: 15%; }
+.line-y-labels span:nth-child(2) { top: 52.5%; }
+.line-y-labels span:last-child { top: 90%; }
+.line-plot { display: grid; min-width: 0; grid-template-rows: 195px 20px; }
+.line-graph { position: relative; height: 195px; }
+.line-graph svg { width: 100%; height: 100%; overflow: visible; }
 .line-grid { stroke: rgb(255 255 255 / 7%); stroke-width: .5; }
 .line-axis { stroke: rgb(255 255 255 / 15%); stroke-width: .6; }
 .line-path { fill: none; stroke: #8eacc4; stroke-width: 2; vector-effect: non-scaling-stroke; }
@@ -38,4 +45,4 @@
 .line-axis-labels span:first-child { transform: none; }
 .line-axis-labels span:last-child { transform: translateX(-100%); }
 @media (max-width: 600px) { .chart-card { padding: 16px; } .chart-row { grid-template-columns: minmax(95px, 120px) minmax(40px, 1fr) 24px; gap: 8px; } .chart-label strong { font-size: 11px; } }
-@media (max-width: 520px) { .pie-layout { grid-template-columns: 1fr; gap: 22px; } .pie-chart { width: min(65vw, 190px); } .line-chart { height: 170px; } }
+@media (max-width: 520px) { .pie-layout { grid-template-columns: 1fr; gap: 22px; } .pie-chart { width: min(65vw, 190px); } .line-chart { grid-template-columns: 30px minmax(0, 1fr); height: 170px; } .line-y-labels { height: 145px; } .line-plot { grid-template-rows: 145px 20px; } .line-graph { height: 145px; } }

@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormField, form, maxLength, minLength, required, submit } from '@angular/forms/signals';
@@ -10,10 +9,13 @@ import { PublicationComment, PublicationsService } from '../../auth/publications
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { PublicationCardComponent } from '../../shared/publication-card/publication-card.component';
 import { PublicationDetailModalComponent, PublicationDetailPost } from '../../shared/publication-detail-modal/publication-detail-modal.component';
+import { FechaLobbyPipe } from '../../shared/pipes/fecha-lobby.pipe';
+import { NombrePropioPipe } from '../../shared/pipes/nombre-propio.pipe';
+import { PublicationCommentFormComponent } from '../../shared/publication-comment-form/publication-comment-form.component';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [DatePipe, FormField, RouterLink, NavbarComponent, PublicationCardComponent, PublicationDetailModalComponent],
+  imports: [FechaLobbyPipe, NombrePropioPipe, FormField, RouterLink, NavbarComponent, PublicationCardComponent, PublicationDetailModalComponent, PublicationCommentFormComponent],
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.css',
 })
@@ -30,7 +32,11 @@ export class ProfilePageComponent implements OnInit {
   protected readonly selectedImage = signal<File | null>(null);
   protected readonly selectedImageName = signal('');
   protected readonly selectedPublication = signal<PublicationDetailPost | null>(null);
+  protected readonly publicacionAEliminar = signal('');
+  protected readonly eliminandoPublicacion = signal('');
   protected readonly comentariosPorPublicacion = signal<Record<string, PublicationComment[]>>({});
+  protected readonly borradoresComentario = signal<Record<string, string>>({});
+  protected readonly comentariosEnviando = signal<ReadonlySet<string>>(new Set());
   protected readonly paginasComentarios = signal<Record<string, number>>({});
   protected readonly paginasTotalesComentarios = signal<Record<string, number>>({});
   protected readonly comentariosCargando = signal<Record<string, boolean>>({});
@@ -99,7 +105,7 @@ export class ProfilePageComponent implements OnInit {
       author: `${user.nombre} ${user.apellido}`,
       handle: user.nombreUsuario,
       initials: this.initials(user.nombre, user.apellido),
-      likes: 0,
+      likes: post.cantidadMeGusta,
       comments: post.cantidadComentarios,
       timeLabel: new Date(post.createdAt).toLocaleString('es-AR'),
     });
@@ -115,6 +121,99 @@ export class ProfilePageComponent implements OnInit {
 
   protected errorDeComentarios(publicacionId: string): string {
     return this.erroresComentarios()[publicacionId] ?? '';
+  }
+
+  protected textoComentario(publicacionId: string): string {
+    return this.borradoresComentario()[publicacionId] ?? '';
+  }
+
+  protected comentarioSeEstaEnviando(publicacionId: string): boolean {
+    return this.comentariosEnviando().has(publicacionId);
+  }
+
+  protected actualizarBorradorComentario(publicacionId: string, entrada: Event | string): void {
+    let texto: string;
+    if (typeof entrada === 'string') {
+      texto = entrada;
+    } else {
+      const campo = entrada.target;
+      if (!(campo instanceof HTMLTextAreaElement)) {
+        return;
+      }
+      texto = campo.value;
+    }
+
+    this.borradoresComentario.update((borradores) => ({
+      ...borradores,
+      [publicacionId]: texto,
+    }));
+  }
+
+  protected enviarComentario(publicacionId: string, event?: Event): void {
+    event?.preventDefault();
+    const mensaje = this.textoComentario(publicacionId).trim();
+
+    if (!mensaje || this.comentarioSeEstaEnviando(publicacionId)) {
+      return;
+    }
+
+    this.comentariosEnviando.update((actuales) => new Set(actuales).add(publicacionId));
+    this.erroresComentarios.update((errores) => ({ ...errores, [publicacionId]: '' }));
+
+    this.publicacionesService.crearComentario(publicacionId, mensaje).subscribe({
+      next: (comentario) => {
+        const comentariosAnteriores = this.comentariosDe(publicacionId);
+        this.comentariosPorPublicacion.update((comentarios) => ({
+          ...comentarios,
+          [publicacionId]: [comentario, ...comentariosAnteriores],
+        }));
+        this.borradoresComentario.update((borradores) => ({ ...borradores, [publicacionId]: '' }));
+        this.erroresComentarios.update((errores) => ({ ...errores, [publicacionId]: '' }));
+        this.profile.update((perfil) => {
+          if (!perfil) {
+            return perfil;
+          }
+          return {
+            ...perfil,
+            publicaciones: perfil.publicaciones.map((publicacion) => {
+              if (publicacion.id !== publicacionId) {
+                return publicacion;
+              }
+              return { ...publicacion, cantidadComentarios: publicacion.cantidadComentarios + 1 };
+            }),
+          };
+        });
+        this.selectedPublication.update((publicacion) => {
+          if (!publicacion || String(publicacion.id) !== publicacionId) {
+            return publicacion;
+          }
+          return { ...publicacion, comments: publicacion.comments + 1 };
+        });
+        this.marcarComentarioComoEnviado(publicacionId);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.erroresComentarios.update((errores) => ({
+            ...errores,
+            [publicacionId]: 'Iniciá sesión de nuevo para comentar.',
+          }));
+        } else {
+          this.erroresComentarios.update((errores) => ({
+            ...errores,
+            [publicacionId]: 'No se pudo enviar el comentario. Intentá otra vez.',
+          }));
+        }
+        this.marcarComentarioComoEnviado(publicacionId);
+      },
+    });
+  }
+
+  private marcarComentarioComoEnviado(publicacionId: string): void {
+    this.comentariosEnviando.update((actuales) => {
+      const nuevos = new Set(actuales);
+      nuevos.delete(publicacionId);
+      return nuevos;
+    });
   }
 
   protected hayMasComentarios(publicacionId: string): boolean {
@@ -159,6 +258,45 @@ export class ProfilePageComponent implements OnInit {
 
   protected closePublication(): void {
     this.selectedPublication.set(null);
+  }
+
+  protected solicitarEliminarPublicacion(publicacionId: string): void {
+    this.message.set('');
+    this.publicacionAEliminar.set(publicacionId);
+  }
+
+  protected cancelarEliminarPublicacion(): void {
+    this.publicacionAEliminar.set('');
+  }
+
+  protected eliminarPublicacion(publicacionId: string): void {
+    if (this.eliminandoPublicacion()) {
+      return;
+    }
+
+    this.message.set('');
+    this.eliminandoPublicacion.set(publicacionId);
+    this.publicacionesService.eliminarPublicacion(publicacionId).subscribe({
+      next: () => {
+        this.publicacionAEliminar.set('');
+        this.eliminandoPublicacion.set('');
+        this.selectedPublication.set(null);
+        this.message.set('Publicación eliminada correctamente.');
+        this.loadProfile();
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 403) {
+          this.message.set('No tenés permiso para eliminar esta publicación.');
+        } else if (error.status === 401) {
+          this.message.set('Iniciá sesión de nuevo para eliminar la publicación.');
+        } else {
+          this.message.set('No se pudo eliminar la publicación. Intentá otra vez.');
+        }
+
+        this.publicacionAEliminar.set('');
+        this.eliminandoPublicacion.set('');
+      },
+    });
   }
 
   protected dateInput(value: string): string {

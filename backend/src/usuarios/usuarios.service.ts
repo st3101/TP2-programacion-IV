@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { InjectModel } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { Comentario } from '../database/schemas/comentario.schema';
+import { MeGusta } from '../database/schemas/me-gusta.schema';
 import { Publicacion } from '../database/schemas/publicacion.schema';
 import { Usuario } from '../database/schemas/usuario.schema';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -13,6 +14,7 @@ export class UsuariosService {
     @InjectModel(Usuario.name) private readonly usuarioModel: Model<Usuario>,
     @InjectModel(Publicacion.name) private readonly publicacionModel: Model<Publicacion>,
     @InjectModel(Comentario.name) private readonly comentarioModel: Model<Comentario>,
+    @InjectModel(MeGusta.name) private readonly meGustaModel: Model<MeGusta>,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -222,20 +224,25 @@ export class UsuariosService {
           publicacionId: publicacion._id,
           eliminadaEn: null,
         });
+        const cantidadMeGusta = await this.meGustaModel.countDocuments({
+          publicacionId: publicacion._id,
+          eliminadaEn: null,
+        });
 
-        return { publicacion, cantidadComentarios };
+        return { publicacion, cantidadComentarios, cantidadMeGusta };
       }),
     );
 
     return {
       usuario: this.toPublicUser(usuario),
-      publicaciones: publicacionesConCantidad.map(({ publicacion, cantidadComentarios }) => ({
+      publicaciones: publicacionesConCantidad.map(({ publicacion, cantidadComentarios, cantidadMeGusta }) => ({
         id: publicacion._id.toString(),
         titulo: publicacion.titulo,
         descripcion: publicacion.descripcion,
         imagenUrl: publicacion.imagenUrl,
         createdAt: publicacion.createdAt,
         cantidadComentarios,
+        cantidadMeGusta,
       })),
     };
   }
