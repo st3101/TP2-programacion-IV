@@ -1,0 +1,33 @@
+<main class="admin-shell">
+  <app-navbar currentPage="admin" [isAdmin]="true" (logoutRequested)="cerrarSesion()" />
+  <section class="admin-content">
+    <p class="eyebrow">ADMINISTRACIÓN</p>
+    <h1>Usuarios</h1>
+    <p class="admin-description">Listado de las cuentas registradas en Lobby.</p>
+
+    @if (cargando()) {
+      <p class="admin-status">Cargando usuarios...</p>
+    } @else if (error()) {
+      <p class="admin-error" role="alert">{{ error() }}</p>
+    } @else if (usuarios().length === 0) {
+      <p class="admin-status">Todavía no hay usuarios.</p>
+    } @else {
+      <div class="users-table-wrap">
+        <table>
+          <thead><tr><th>Usuario</th><th>Correo</th><th>Perfil</th><th>Estado</th><th>Registrado</th></tr></thead>
+          <tbody>
+            @for (usuario of usuarios(); track usuario.id) {
+              <tr>
+                <td><strong>{{ usuario.nombre }} {{ usuario.apellido }}</strong><small>&#64;{{ usuario.nombreUsuario }}</small></td>
+                <td>{{ usuario.correo }}</td>
+                <td>{{ usuario.perfil }}</td>
+                <td>{{ usuario.habilitado ? 'Habilitado' : 'Deshabilitado' }}</td>
+                <td>{{ usuario.creadoEn | date: 'dd/MM/yyyy' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</main>

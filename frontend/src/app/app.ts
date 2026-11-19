@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from './auth/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   imports: [RouterOutlet],
@@ -10,6 +11,16 @@ import { AuthService } from './auth/auth.service';
 })
 export class App {
   protected readonly authService = inject(AuthService);
+
+  protected extenderSesion(): void {
+    void firstValueFrom(this.authService.extenderSesion()).catch(() => {
+      this.authService.manejarSesionNoValida();
+    });
+  }
+
+  protected finalizarSesion(): void {
+    this.authService.cerrarModalAvisoSesion();
+  }
 
   protected textoRelojSesion(): string {
     const segundos = this.authService.segundosRestantesSesion() ?? 0;

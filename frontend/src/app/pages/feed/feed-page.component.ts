@@ -69,6 +69,7 @@ export class FeedPageComponent implements OnDestroy, OnInit {
   protected readonly posts = signal<FeedPost[]>([]);
   protected readonly selectedPost = signal<PublicationDetailPost | null>(null);
   protected readonly currentUserId = signal('');
+  protected readonly currentUserProfile = signal('');
   protected readonly confirmDeleteId = signal('');
   protected readonly deletingPostId = signal('');
   protected readonly commentsByPost = signal<Record<string, PublicationComment[]>>({});
@@ -89,7 +90,10 @@ export class FeedPageComponent implements OnDestroy, OnInit {
   ngOnInit(): void {
     this.cargarPagina(1);
     this.profileService.getMyProfile().subscribe({
-      next: ({ usuario }) => this.currentUserId.set(usuario.id),
+      next: ({ usuario }) => {
+        this.currentUserId.set(usuario.id);
+        this.currentUserProfile.set(usuario.perfil);
+      },
     });
     this.publicationsService.obtenerMisMeGustas().subscribe({
       next: ({ publicacionIds }) => {
@@ -244,8 +248,10 @@ export class FeedPageComponent implements OnDestroy, OnInit {
     return this.pendingLikes().has(String(postId));
   }
 
-  protected esPublicacionPropia(post: FeedPost): boolean {
-    return !!this.currentUserId() && post.authorId === this.currentUserId();
+  protected puedeEliminarPublicacion(post: FeedPost): boolean {
+    const esAdministrador = this.currentUserProfile() === 'administrador';
+    const esPropia = !!this.currentUserId() && post.authorId === this.currentUserId();
+    return esAdministrador || esPropia;
   }
 
   protected estaConfirmandoEliminacion(postId: number | string): boolean {
@@ -523,7 +529,7 @@ export class FeedPageComponent implements OnDestroy, OnInit {
       return;
     }
 
-    if (!this.esPublicacionPropia(post)) {
+    if (!this.puedeEliminarPublicacion(post)) {
       return;
     }
 

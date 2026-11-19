@@ -1,5 +1,7 @@
-import { Body, Controller, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import type { Response } from 'express';
+import type { AuthenticatedRequest } from './jwt-auth.guard';
+import { JwtAuthGuard } from './jwt-auth.guard';
 import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -35,6 +37,21 @@ export class AuthController {
     return { message: 'Sesión cerrada.' };
   }
 
+  @Post('autorizar')
+  @UseGuards(JwtAuthGuard)
+  async autorizar(@Req() request: AuthenticatedRequest) {
+    return {
+      autorizado: true,
+      usuario: await this.authService.obtenerUsuarioAutorizado(request.user.sub),
+    };
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtAuthGuard)
+  refresh(@Req() request: AuthenticatedRequest, @Res({ passthrough: true }) response: Response) {
+    return this.createSessionCookie(this.authService.refreshSession(request.user.sub), response);
+  }
+
   // Crea la cookie de sesión y devuelve el usuario
   private async createSessionCookie(
     sessionPromise: ReturnType<AuthService['login']>,
@@ -52,8 +69,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
-      // La cookie expira en 10 minutos (10 * 30 * 1000 ms)
-      maxAge: 10 * 30 * 1000,
+      maxAge: 20 * 60 * 1000,
     };
   }
 }

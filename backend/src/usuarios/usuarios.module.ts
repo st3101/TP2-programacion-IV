@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from '../auth/auth.module';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import { Comentario, ComentarioSchema } from '../database/schemas/comentario.schema';
 import { Publicacion, PublicacionSchema } from '../database/schemas/publicacion.schema';
 import { Usuario, UsuarioSchema } from '../database/schemas/usuario.schema';
@@ -20,6 +21,6 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     ]),
   ],
   controllers: [UsuariosController],
-  providers: [UsuariosService, JwtAuthGuard],
+  providers: [UsuariosService, JwtAuthGuard, AdminGuard],
 })
 export class UsuariosModule {}

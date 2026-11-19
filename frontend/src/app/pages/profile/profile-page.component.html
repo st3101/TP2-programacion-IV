@@ -1,5 +1,5 @@
 <main class="profile-shell">
-  <app-navbar currentPage="profile" (logoutRequested)="logout()" />
+  <app-navbar currentPage="profile" [isAdmin]="profile()?.usuario?.perfil === 'administrador'" (logoutRequested)="logout()" />
 
   <section class="profile-content" aria-labelledby="profile-title">
     <div class="page-heading">

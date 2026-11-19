@@ -8,6 +8,7 @@ import { RouterLink } from '@angular/router';
   styleUrl: './navbar.component.css',
 })
 export class NavbarComponent {
-  @Input() currentPage: 'feed' | 'profile' = 'feed';
+  @Input() currentPage: 'feed' | 'profile' | 'admin' = 'feed';
+  @Input() isAdmin = false;
   @Output() logoutRequested = new EventEmitter<void>();
 }

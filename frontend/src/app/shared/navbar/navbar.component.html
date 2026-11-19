@@ -7,6 +7,9 @@
   <nav class="main-nav" aria-label="Navegación principal">
     <a class="nav-link" [class.nav-link--active]="currentPage === 'feed'" routerLink="/feed" [attr.aria-current]="currentPage === 'feed' ? 'page' : null">Feed</a>
     <a class="nav-link" [class.nav-link--active]="currentPage === 'profile'" routerLink="/mi-perfil" [attr.aria-current]="currentPage === 'profile' ? 'page' : null">Mi perfil</a>
+    @if (isAdmin) {
+      <a class="nav-link" [class.nav-link--active]="currentPage === 'admin'" routerLink="/admin/usuarios" [attr.aria-current]="currentPage === 'admin' ? 'page' : null">Usuarios</a>
+    }
   </nav>
 
   <button class="logout-button" type="button" (click)="logoutRequested.emit()">Cerrar sesión <span aria-hidden="true">↗</span></button>

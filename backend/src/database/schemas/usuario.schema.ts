@@ -10,6 +10,9 @@ export type UsuarioDocument = HydratedDocument<Usuario>;
 
 @Schema({ timestamps: true, collection: 'usuarios' })
 export class Usuario {
+  createdAt?: Date;
+  updatedAt?: Date;
+
   @Prop({ required: true, trim: true, maxlength: 80 })
   nombre!: string;
 

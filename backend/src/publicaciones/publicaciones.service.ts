@@ -431,7 +431,7 @@ export class PublicacionesService {
   }
 
   // Elimina una publicación propia mediante baja lógica.
-  async deleteOwn(usuarioId: string, publicationId: string) {
+  async deleteOwn(usuarioId: string, perfil: string, publicationId: string) {
     if (!Types.ObjectId.isValid(publicationId)) {
       throw new BadRequestException('La publicación indicada no es válida.');
     }
@@ -440,14 +440,16 @@ export class PublicacionesService {
     const publication = await this.publicacionModel.findById(publicationObjectId).select('autorId eliminadaEn imagenPublicId');
     if (!publication || publication.eliminadaEn) throw new NotFoundException('No se encontró la publicación.');
 
-    // Solo el autor puede eliminar su publicación.
-    if (publication.autorId.toString() !== usuarioId) {
+    const esAdministrador = perfil === 'administrador';
+    const esPropia = publication.autorId.toString() === usuarioId;
+    if (!esPropia && !esAdministrador) {
       throw new ForbiddenException('Solo podés eliminar tus propias publicaciones.');
     }
 
-    // Guarda la fecha de eliminación en vez de borrar el documento de MongoDB.
+    // El administrador puede eliminar cualquiera; el usuario solo sus publicaciones.
+    const filtroAutor = esAdministrador ? {} : { autorId: new Types.ObjectId(usuarioId) };
     const deleted = await this.publicacionModel.findOneAndUpdate(
-      { _id: publicationObjectId, autorId: new Types.ObjectId(usuarioId), eliminadaEn: null },
+      { _id: publicationObjectId, ...filtroAutor, eliminadaEn: null },
       { $set: { eliminadaEn: new Date() } },
       { new: true },
     ).select('_id');

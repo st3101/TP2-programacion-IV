@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Usuario, UsuarioSchema } from '../database/schemas/usuario.schema';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 
@@ -21,13 +22,12 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
 
-        //Setea tiempo de expiración del token a 1 minuto
-        signOptions: { expiresIn: '10m' },
+        signOptions: { expiresIn: '15m' },
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtAuthGuard],
   exports: [JwtModule],
 })
 export class AuthModule {}
