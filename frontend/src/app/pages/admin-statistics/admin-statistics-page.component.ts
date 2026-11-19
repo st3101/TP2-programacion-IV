@@ -123,7 +123,8 @@ export class AdminStatisticsPageComponent implements OnInit {
     }).subscribe({
       next: (resultado) => {
         this.publicaciones.set(resultado);
-        this.elementosPublicaciones.set(resultado.usuarios.map((usuario) => ({
+        const usuariosConPublicaciones = resultado.usuarios.filter((usuario) => usuario.cantidad > 0);
+        this.elementosPublicaciones.set(usuariosConPublicaciones.map((usuario) => ({
           id: usuario.id,
           etiqueta: `${usuario.nombre} ${usuario.apellido}`,
           detalle: `@${usuario.nombreUsuario}`,

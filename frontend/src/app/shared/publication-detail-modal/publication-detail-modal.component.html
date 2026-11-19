@@ -39,7 +39,7 @@
         <p>{{ post.message }}</p>
       </article>
 
-      <p class="publication-detail-counts">{{ post.likes }} Me gusta · {{ post.comments }} comentarios</p>
+      <p class="publication-detail-counts">{{ post.likes }} Me gusta · {{ post.comments }} {{ post.comments | pluralizar: 'comentario' : 'comentarios' }}</p>
 
       <section class="publication-detail-comments" [attr.aria-label]="'Comentarios de ' + post.title">
         <h3>Comentarios</h3>
@@ -52,7 +52,7 @@
         @for (comment of comments; track comment.id) {
           <article class="comment-item">
             <header>
-              <strong>{{ comment.autor ? comment.autor.nombre + ' ' + comment.autor.apellido : 'Usuario' }}</strong>
+              <strong>{{ comment.autor ? (comment.autor.nombre + ' ' + comment.autor.apellido | nombrePropio) : 'Usuario' }}</strong>
               @if (comment.autor) { <span>&#64;{{ comment.autor.nombreUsuario }}</span> }
               <time>{{ commentTime(comment.createdAt) }}</time>
             </header>

@@ -10,6 +10,7 @@ export interface ProfilePost {
   imagenUrl: string;
   createdAt: string;
   cantidadComentarios: number;
+  cantidadMeGusta: number;
 }
 
 export interface UserProfile {

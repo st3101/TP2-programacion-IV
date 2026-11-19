@@ -1,4 +1,5 @@
 <article
+  appResaltarAlPasar
   class="publication-card"
   [class.publication-card--profile]="variant === 'profile'"
 >
@@ -16,17 +17,19 @@
 
         <div class="author-details">
           <div class="author-line">
-            <span class="author-name">{{ author }}</span>
+            <span class="author-name">{{ author | nombrePropio }}</span>
             <span class="author-handle">&#64;{{ handle }}</span>
           </div>
           <span class="publication-time">{{ timeLabel }}</span>
         </div>
       </div>
 
-      <span class="game-tag">
-        <span class="tag-mark"></span>
-        {{ game }}
-      </span>
+      @if (mostrarJuego) {
+        <span class="game-tag">
+          <span class="tag-mark"></span>
+          {{ game }}
+        </span>
+      }
     </header>
 
     <div class="publication-copy">

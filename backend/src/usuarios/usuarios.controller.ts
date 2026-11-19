@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
@@ -7,7 +7,6 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AdminCreateUserDto } from './dto/admin-create-user.dto';
 import { UsuariosService } from './usuarios.service';
 import { AuthService } from '../auth/auth.service';
-import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 
 @Controller('usuarios')
 @UseGuards(JwtAuthGuard)
@@ -88,13 +87,21 @@ export class UsuariosController {
     return this.authService.crearUsuarioAdministrador(datos, image, datos.perfil);
   }
 
-  @Patch(':id/habilitacion')
+  @Delete(':id')
   @UseGuards(AdminGuard)
-  cambiarHabilitacion(
+  deshabilitarUsuario(
     @Param('id') usuarioId: string,
-    @Body() datos: UpdateUserStatusDto,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.usuariosService.cambiarHabilitacion(usuarioId, datos.habilitado, request.user.sub);
+    return this.usuariosService.cambiarHabilitacion(usuarioId, false, request.user.sub);
+  }
+
+  @Post(':id/rehabilitar')
+  @UseGuards(AdminGuard)
+  rehabilitarUsuario(
+    @Param('id') usuarioId: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.usuariosService.cambiarHabilitacion(usuarioId, true, request.user.sub);
   }
 }

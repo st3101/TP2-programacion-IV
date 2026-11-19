@@ -9,6 +9,8 @@ import { PublicationComment, PublicationsService } from '../../auth/publications
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { PublicationCardComponent } from '../../shared/publication-card/publication-card.component';
 import { PublicationDetailModalComponent, PublicationDetailPost } from '../../shared/publication-detail-modal/publication-detail-modal.component';
+import { LimpiarEspaciosDirective } from '../../shared/directives/limpiar-espacios.directive';
+import { PublicationCommentFormComponent } from '../../shared/publication-comment-form/publication-comment-form.component';
 
 type FeedSort = 'recent' | 'popular';
 
@@ -33,7 +35,7 @@ interface FeedPost {
 
 @Component({
   selector: 'app-feed-page',
-  imports: [FormField, NavbarComponent, PublicationCardComponent, PublicationDetailModalComponent],
+  imports: [FormField, NavbarComponent, PublicationCardComponent, PublicationDetailModalComponent, LimpiarEspaciosDirective, PublicationCommentFormComponent],
   templateUrl: './feed-page.component.html',
   styleUrl: './feed-page.component.css',
 })
@@ -179,6 +181,11 @@ export class FeedPageComponent implements OnDestroy, OnInit {
         this.loadingFeed.set(false);
       },
     });
+  }
+
+  protected cambiarPagina(pagina: number): void {
+    this.cargarPagina(pagina);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   private formatearTiempo(value: string): string {
