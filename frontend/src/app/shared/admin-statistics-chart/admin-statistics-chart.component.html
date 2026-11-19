@@ -1,0 +1,58 @@
+<section class="chart-card" [class.chart-card--comments]="colorComentarios" [class.chart-card--publication-comments]="colorComentarios && tipo === 'barras'" [attr.aria-label]="titulo">
+  <div class="chart-heading">
+    <div>
+      <h3>{{ titulo }}</h3>
+    </div>
+    <div class="total-count"><strong>{{ total }}</strong><span>{{ nombreTotal }}</span></div>
+  </div>
+
+  @if (total === 0) {
+    <p class="statistics-status">{{ mensajeVacio }}</p>
+  } @else {
+    @if (tipo === 'torta') {
+      <div class="pie-layout">
+        <div class="pie-chart" [style.background]="fondoTorta()" role="img" [attr.aria-label]="titulo + ', distribución por usuario'"></div>
+        <div class="pie-legend" role="list">
+          @for (elemento of elementos; track elemento.id; let indice = $index) {
+            <div class="pie-legend-row" role="listitem">
+              <span class="pie-color" [style.background]="colorElemento(indice)" aria-hidden="true"></span>
+              <strong>{{ elemento.etiqueta }}</strong>
+              <span>{{ elemento.cantidad }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    } @else if (tipo === 'lineas') {
+      <div class="line-chart" role="img" [attr.aria-label]="titulo + ', gráfico de líneas'">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="0" y1="25" x2="100" y2="25" class="line-grid" />
+          <line x1="0" y1="50" x2="100" y2="50" class="line-grid" />
+          <line x1="0" y1="75" x2="100" y2="75" class="line-grid" />
+          <line x1="0" y1="90" x2="100" y2="90" class="line-axis" />
+          <polyline [attr.points]="puntosLinea()" class="line-path" />
+        </svg>
+        @for (elemento of elementos; track elemento.id; let indice = $index) {
+          <span class="line-point" [style.left.%]="posicionX(indice)" [style.top.%]="posicionY(elemento.cantidad)" [attr.title]="elemento.etiqueta + ': ' + elemento.cantidad + ' comentarios'"></span>
+        }
+      </div>
+      <div class="line-axis-labels" aria-hidden="true">
+        @for (etiqueta of etiquetasDelEje(); track etiqueta.posicion) {
+          <span [style.left.%]="etiqueta.posicion">{{ etiqueta.texto }}</span>
+        }
+      </div>
+    } @else {
+      <div class="chart" role="list" [attr.aria-label]="titulo">
+        @for (elemento of elementos; track elemento.id) {
+          <div class="chart-row" role="listitem">
+            <div class="chart-label">
+              <strong>{{ elemento.etiqueta }}</strong>
+              @if (elemento.detalle) { <span>{{ elemento.detalle }}</span> }
+            </div>
+            <div class="bar-track" aria-hidden="true"><span class="bar" [style.width.%]="anchoBarra(elemento.cantidad)"></span></div>
+            <strong class="bar-value">{{ elemento.cantidad }}</strong>
+          </div>
+        }
+      </div>
+    }
+  }
+</section>

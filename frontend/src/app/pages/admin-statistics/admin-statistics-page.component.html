@@ -1,0 +1,98 @@
+<main class="statistics-shell">
+  <app-navbar currentPage="statistics" [isAdmin]="true" (logoutRequested)="cerrarSesion()" />
+
+  <section class="statistics-content">
+    <p class="eyebrow">ADMINISTRACIÓN</p>
+    <h1>Estadísticas</h1>
+    <p class="statistics-description">Elegí por separado el período para cada estadística.</p>
+
+    <section class="statistics-section" aria-label="Estadísticas de publicaciones">
+      <h2>Publicaciones por usuario</h2>
+      <app-admin-date-filter
+        [fechaDesde]="desdePublicaciones()"
+        [fechaHasta]="hastaPublicaciones()"
+        [textoBoton]="'Ver publicaciones'"
+        [cargando]="cargandoPublicaciones()"
+        (fechaDesdeChange)="cambiarDesdePublicaciones($event)"
+        (fechaHastaChange)="cambiarHastaPublicaciones($event)"
+        (buscar)="buscarPublicaciones()"
+      />
+
+      @if (errorPublicaciones()) {
+        <p class="statistics-error" role="alert">{{ errorPublicaciones() }}</p>
+      }
+      @if (cargandoPublicaciones() && !publicaciones()) {
+        <p class="statistics-status" role="status">Cargando estadísticas de publicaciones...</p>
+      } @else if (publicaciones(); as datos) {
+        <app-admin-statistics-chart
+          [titulo]="'Publicaciones por usuario'"
+          [total]="datos.totalPublicaciones"
+          [nombreTotal]="'publicaciones'"
+          [elementos]="elementosPublicaciones()"
+          [mensajeVacio]="'No hubo publicaciones en este período.'"
+          [tipo]="'torta'"
+        />
+      }
+    </section>
+
+    <section class="statistics-section comments-section" aria-label="Estadísticas de comentarios">
+      <h2>Comentarios por día</h2>
+      <app-admin-date-filter
+        [fechaDesde]="desdeComentarios()"
+        [fechaHasta]="hastaComentarios()"
+        [textoBoton]="'Ver comentarios'"
+        [cargando]="cargandoComentarios()"
+        (fechaDesdeChange)="cambiarDesdeComentarios($event)"
+        (fechaHastaChange)="cambiarHastaComentarios($event)"
+        (buscar)="buscarComentarios()"
+      />
+
+      @if (errorComentarios()) {
+        <p class="statistics-error" role="alert">{{ errorComentarios() }}</p>
+      }
+      @if (cargandoComentarios() && !comentarios()) {
+        <p class="statistics-status" role="status">Cargando estadísticas de comentarios...</p>
+      } @else if (comentarios(); as datos) {
+        <app-admin-statistics-chart
+          [titulo]="'Comentarios por día'"
+          [total]="datos.totalComentarios"
+          [nombreTotal]="'comentarios'"
+          [elementos]="elementosComentarios()"
+          [mensajeVacio]="'No hubo comentarios en este período.'"
+          [colorComentarios]="true"
+          [tipo]="'lineas'"
+        />
+      }
+    </section>
+
+    <section class="statistics-section comments-section" aria-label="Comentarios por publicación">
+      <h2>Comentarios por publicación</h2>
+      <app-admin-date-filter
+        [fechaDesde]="desdeComentariosPorPublicacion()"
+        [fechaHasta]="hastaComentariosPorPublicacion()"
+        [textoBoton]="'Ver comentarios'"
+        [cargando]="cargandoComentariosPorPublicacion()"
+        (fechaDesdeChange)="cambiarDesdeComentariosPorPublicacion($event)"
+        (fechaHastaChange)="cambiarHastaComentariosPorPublicacion($event)"
+        (buscar)="buscarComentariosPorPublicacion()"
+      />
+
+      @if (errorComentariosPorPublicacion()) {
+        <p class="statistics-error" role="alert">{{ errorComentariosPorPublicacion() }}</p>
+      }
+      @if (cargandoComentariosPorPublicacion() && !comentariosPorPublicacion()) {
+        <p class="statistics-status" role="status">Cargando comentarios por publicación...</p>
+      } @else if (comentariosPorPublicacion(); as datos) {
+        <app-admin-statistics-chart
+          [titulo]="'Comentarios por publicación'"
+          [total]="datos.totalComentarios"
+          [nombreTotal]="'comentarios'"
+          [elementos]="elementosComentariosPorPublicacion()"
+          [mensajeVacio]="'No hubo comentarios en este período.'"
+          [colorComentarios]="true"
+          [tipo]="'barras'"
+        />
+      }
+    </section>
+  </section>
+</main>

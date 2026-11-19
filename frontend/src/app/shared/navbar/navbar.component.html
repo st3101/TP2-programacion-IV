@@ -8,9 +8,16 @@
     <a class="nav-link" [class.nav-link--active]="currentPage === 'feed'" routerLink="/feed" [attr.aria-current]="currentPage === 'feed' ? 'page' : null">Feed</a>
     <a class="nav-link" [class.nav-link--active]="currentPage === 'profile'" routerLink="/mi-perfil" [attr.aria-current]="currentPage === 'profile' ? 'page' : null">Mi perfil</a>
     @if (isAdmin) {
-      <a class="nav-link" [class.nav-link--active]="currentPage === 'admin'" routerLink="/admin/usuarios" [attr.aria-current]="currentPage === 'admin' ? 'page' : null">Usuarios</a>
+      <a class="nav-link" [class.nav-link--active]="currentPage === 'users' || currentPage === 'statistics'" routerLink="/admin/usuarios">Admin</a>
     }
   </nav>
 
   <button class="logout-button" type="button" (click)="logoutRequested.emit()">Cerrar sesión <span aria-hidden="true">↗</span></button>
+
+  @if (isAdmin && (currentPage === 'users' || currentPage === 'statistics')) {
+    <nav class="main-nav admin-subnav" aria-label="Sección de administración">
+      <a class="nav-link" [class.nav-link--active]="currentPage === 'users'" routerLink="/admin/usuarios" [attr.aria-current]="currentPage === 'users' ? 'page' : null">Usuarios</a>
+      <a class="nav-link" [class.nav-link--active]="currentPage === 'statistics'" routerLink="/admin/estadisticas" [attr.aria-current]="currentPage === 'statistics' ? 'page' : null">Estadísticas</a>
+    </nav>
+  }
 </header>

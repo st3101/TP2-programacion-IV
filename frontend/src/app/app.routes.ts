@@ -32,5 +32,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/admin/admin-page.component').then((modulo) => modulo.AdminPageComponent),
   },
+  {
+    path: 'admin/estadisticas',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('./pages/admin-statistics/admin-statistics-page.component').then((modulo) => modulo.AdminStatisticsPageComponent),
+  },
   { path: '**', redirectTo: 'login' },
 ];

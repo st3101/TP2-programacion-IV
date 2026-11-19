@@ -1,15 +1,21 @@
-import { Body, Controller, Get, Patch, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { AdminCreateUserDto } from './dto/admin-create-user.dto';
 import { UsuariosService } from './usuarios.service';
+import { AuthService } from '../auth/auth.service';
+import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 
 @Controller('usuarios')
 @UseGuards(JwtAuthGuard)
 export class UsuariosController {
-  constructor(private readonly usuariosService: UsuariosService) {}
+  constructor(
+    private readonly usuariosService: UsuariosService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Get('me')
   getMyProfile(@Req() request: AuthenticatedRequest) {
@@ -32,5 +38,63 @@ export class UsuariosController {
   @UseGuards(AdminGuard)
   listarUsuarios() {
     return this.usuariosService.listarUsuarios();
+  }
+
+  @Get('estadisticas/publicaciones')
+  @UseGuards(AdminGuard)
+  estadisticasDePublicaciones(
+    @Query('desde') desde: string,
+    @Query('hasta') hasta: string,
+  ) {
+    if (!desde || !hasta) {
+      throw new BadRequestException('Elegí una fecha de inicio y una fecha de fin.');
+    }
+    return this.usuariosService.estadisticasDePublicaciones(desde, hasta);
+  }
+
+  @Get('estadisticas/comentarios')
+  @UseGuards(AdminGuard)
+  estadisticasDeComentarios(
+    @Query('desde') desde: string,
+    @Query('hasta') hasta: string,
+  ) {
+    if (!desde || !hasta) {
+      throw new BadRequestException('Elegí una fecha de inicio y una fecha de fin.');
+    }
+    return this.usuariosService.estadisticasDeComentarios(desde, hasta);
+  }
+
+  @Get('estadisticas/comentarios-por-publicacion')
+  @UseGuards(AdminGuard)
+  estadisticasDeComentariosPorPublicacion(
+    @Query('desde') desde: string,
+    @Query('hasta') hasta: string,
+  ) {
+    if (!desde || !hasta) {
+      throw new BadRequestException('Elegí una fecha de inicio y una fecha de fin.');
+    }
+    return this.usuariosService.estadisticasDeComentariosPorPublicacion(desde, hasta);
+  }
+
+  @Post()
+  @UseGuards(AdminGuard)
+  @UseInterceptors(
+    createImageFileInterceptor('imagenPerfil', 'La foto debe ser JPG, PNG o WEBP.'),
+  )
+  crearUsuario(
+    @Body() datos: AdminCreateUserDto,
+    @UploadedFile() image?: { buffer: Buffer; mimetype: string },
+  ) {
+    return this.authService.crearUsuarioAdministrador(datos, image, datos.perfil);
+  }
+
+  @Patch(':id/habilitacion')
+  @UseGuards(AdminGuard)
+  cambiarHabilitacion(
+    @Param('id') usuarioId: string,
+    @Body() datos: UpdateUserStatusDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.usuariosService.cambiarHabilitacion(usuarioId, datos.habilitado, request.user.sub);
   }
 }

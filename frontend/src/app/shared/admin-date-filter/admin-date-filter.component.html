@@ -1,0 +1,5 @@
+<form class="date-filter" (submit)="enviarFormulario($event)">
+  <label>Desde<input type="date" [value]="fechaDesde" (input)="actualizarDesde($event)" required /></label>
+  <label>Hasta<input type="date" [value]="fechaHasta" (input)="actualizarHasta($event)" required /></label>
+  <button type="submit" [disabled]="cargando">{{ cargando ? 'Cargando...' : textoBoton }}</button>
+</form>

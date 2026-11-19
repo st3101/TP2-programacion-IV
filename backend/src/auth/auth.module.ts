@@ -28,6 +28,6 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtAuthGuard],
-  exports: [JwtModule],
+  exports: [JwtModule, AuthService],
 })
 export class AuthModule {}
