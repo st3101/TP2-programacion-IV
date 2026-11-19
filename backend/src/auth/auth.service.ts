@@ -85,10 +85,38 @@ export class AuthService {
     return this.createSession(usuario);
   }
 
+  async refreshSession(usuarioId: string) {
+    const usuario = await this.usuarioModel.findOne({ _id: usuarioId, habilitado: true });
+    if (!usuario) {
+      throw new UnauthorizedException('La sesión ya no es válida.');
+    }
+    return this.createSession(usuario);
+  }
+
+  async obtenerUsuarioAutorizado(usuarioId: string) {
+    const usuario = await this.usuarioModel
+      .findOne({ _id: usuarioId, habilitado: true })
+      .select('nombre apellido correo nombreUsuario perfil');
+
+    if (!usuario) {
+      throw new UnauthorizedException('La sesión ya no es válida.');
+    }
+
+    return {
+      id: usuario._id.toString(),
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      correo: usuario.correo,
+      nombreUsuario: usuario.nombreUsuario,
+      perfil: usuario.perfil,
+    };
+  }
+
   private createSession(usuario: HydratedDocument<Usuario>) {
     const payload = {
       sub: usuario._id.toString(),
       correo: usuario.correo,
+      nombreUsuario: usuario.nombreUsuario,
       perfil: usuario.perfil,
     };
 

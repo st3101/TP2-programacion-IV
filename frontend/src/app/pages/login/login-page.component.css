@@ -1,5 +1,33 @@
 :host { display: block; min-height: 100vh; }
 
+.auth-loading {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  background: rgb(9 10 12 / 92%);
+  color: #e9e7e6;
+  font-size: 13px;
+  backdrop-filter: blur(5px);
+}
+
+.auth-loading-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgb(255 255 255 / 18%);
+  border-top-color: #e7a095;
+  border-radius: 50%;
+  animation: auth-spinner-rotation 0.8s linear infinite;
+}
+
+@keyframes auth-spinner-rotation {
+  to { transform: rotate(360deg); }
+}
+
 .login-page {
   position: relative;
   display: flex;

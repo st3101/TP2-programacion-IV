@@ -16,6 +16,25 @@ export class UsuariosService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  async listarUsuarios() {
+    const usuarios = await this.usuarioModel
+      .find()
+      .select('nombre apellido correo nombreUsuario perfil habilitado createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return usuarios.map((usuario) => ({
+      id: usuario._id.toString(),
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      correo: usuario.correo,
+      nombreUsuario: usuario.nombreUsuario,
+      perfil: usuario.perfil,
+      habilitado: usuario.habilitado,
+      creadoEn: usuario.createdAt,
+    }));
+  }
+
   async getMyProfile(usuarioId: string) {
     const usuario = await this.usuarioModel.findById(usuarioId);
     if (!usuario) throw new NotFoundException('No se encontró el usuario.');

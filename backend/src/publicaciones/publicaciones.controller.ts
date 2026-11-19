@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { createImageFileInterceptor } from '../interceptors/image-file.interceptor';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
@@ -54,7 +54,7 @@ export class PublicacionesController {
     return this.publicacionesService.createComment(request.user.sub, publicationId, dto);
   }
 
-  @Patch(':id/comentarios/:comentarioId')
+  @Put(':id/comentarios/:comentarioId')
   @UseGuards(JwtAuthGuard)
   editarComentario(
     @Param('comentarioId') comentarioId: string,
@@ -80,7 +80,7 @@ export class PublicacionesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   deleteOwn(@Param('id') publicationId: string, @Req() request: AuthenticatedRequest) {
-    return this.publicacionesService.deleteOwn(request.user.sub, publicationId);
+    return this.publicacionesService.deleteOwn(request.user.sub, request.user.perfil, publicationId);
   }
 
   @Post(':id/me-gusta')

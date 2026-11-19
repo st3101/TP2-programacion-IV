@@ -93,7 +93,7 @@ export class PublicationsService {
   }
 
   editarComentario(publicationId: string, comentarioId: string, mensaje: string): Observable<PublicationComment> {
-    return this.http.patch<PublicationComment>(`${this.apiUrl}/${publicationId}/comentarios/${comentarioId}`, { mensaje });
+    return this.http.put<PublicationComment>(`${this.apiUrl}/${publicationId}/comentarios/${comentarioId}`, { mensaje });
   }
 
   eliminarPublicacion(publicationId: string): Observable<{ message: string }> {

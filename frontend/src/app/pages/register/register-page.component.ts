@@ -16,6 +16,7 @@ export class RegisterPageComponent {
   private readonly router = inject(Router);
   protected readonly passwordVisible = signal(false);
   protected readonly message = signal('');
+  protected readonly cargandoRegistro = signal(false);
   protected readonly selectedImage = signal('');
   private readonly selectedFile = signal<File | null>(null);
 
@@ -92,6 +93,8 @@ export class RegisterPageComponent {
       }
 
       this.message.set('');
+      const inicio = Date.now();
+      this.cargandoRegistro.set(true);
 
       try {
         await firstValueFrom(this.authService.register({
@@ -104,11 +107,22 @@ export class RegisterPageComponent {
           fechaNacimiento: datos.birthdate,
           descripcion: datos.descripcion,
         }, image));
+        await this.esperarSpinner(inicio);
         await this.router.navigateByUrl('/feed');
       } catch (error) {
+        await this.esperarSpinner(inicio);
         this.mostrarError(error);
+      } finally {
+        this.cargandoRegistro.set(false);
       }
     });
+  }
+
+  private async esperarSpinner(inicio: number): Promise<void> {
+    const restante = 1500 - (Date.now() - inicio);
+    if (restante > 0) {
+      await new Promise((resolver) => setTimeout(resolver, restante));
+    }
   }
 
   private mostrarError(error: unknown): void {

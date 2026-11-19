@@ -1,0 +1,16 @@
+:host { display: block; min-height: 100vh; }
+.admin-shell { min-height: 100vh; padding: 20px 32px 60px; }
+.admin-content { width: min(1100px, 100%); margin: 55px auto 0; }
+.eyebrow { color: #d99589; font: 10px var(--font-mono); letter-spacing: .14em; }
+h1 { margin: 8px 0; color: var(--color-mist); font-size: clamp(32px, 5vw, 48px); font-weight: 500; }
+.admin-description, .admin-status { color: var(--color-ash); font-size: 13px; }
+.users-table-wrap { margin-top: 28px; overflow-x: auto; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; background: rgb(255 255 255 / 2%); }
+table { width: 100%; border-collapse: collapse; text-align: left; color: var(--color-ash); font-size: 12px; }
+th, td { padding: 14px 16px; border-bottom: 1px solid rgb(255 255 255 / 8%); white-space: nowrap; }
+th { color: var(--color-smoke); font: 10px var(--font-mono); letter-spacing: .08em; }
+tbody tr:last-child td { border-bottom: 0; }
+td strong, td small { display: block; }
+td strong { color: var(--color-mist); font-weight: 500; }
+td small { margin-top: 4px; color: var(--color-smoke); }
+.admin-error { color: #ff9999; }
+@media (max-width: 600px) { .admin-shell { padding: 12px; } .admin-content { margin-top: 38px; } }

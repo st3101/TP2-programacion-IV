@@ -1,5 +1,5 @@
 <div class="feed-shell">
-  <app-navbar currentPage="feed" (logoutRequested)="cerrarSesion()" />
+  <app-navbar currentPage="feed" [isAdmin]="currentUserProfile() === 'administrador'" (logoutRequested)="cerrarSesion()" />
 
   <main class="page-content">
     <section class="feed-heading" aria-labelledby="feed-title">
@@ -105,7 +105,7 @@
               </svg>
               <span>{{ post.comments }} comentarios</span>
             </span>
-            @if (esPublicacionPropia(post)) {
+            @if (puedeEliminarPublicacion(post)) {
               <div class="post-delete-actions">
                 @if (estaConfirmandoEliminacion(post.id)) {
                   <span>¿Eliminar?</span>

@@ -16,6 +16,7 @@ export class LoginPageComponent {
   private readonly router = inject(Router);
   protected readonly passwordVisible = signal(false);
   protected readonly message = signal('');
+  protected readonly cargandoSesion = signal(false);
   private readonly datosFormulario = signal({
     identificador: '',
     password: '',
@@ -38,14 +39,27 @@ export class LoginPageComponent {
     void submit(this.formulario, async () => {
       const { identificador, password } = this.datosFormulario();
       this.message.set('');
+      const inicio = Date.now();
+      this.cargandoSesion.set(true);
 
       try {
         await firstValueFrom(this.authService.login(identificador, password));
+        await this.esperarSpinner(inicio);
         await this.router.navigateByUrl('/feed');
       } catch (error) {
+        await this.esperarSpinner(inicio);
         this.mostrarError(error);
+      } finally {
+        this.cargandoSesion.set(false);
       }
     });
+  }
+
+  private async esperarSpinner(inicio: number): Promise<void> {
+    const restante = 1500 - (Date.now() - inicio);
+    if (restante > 0) {
+      await new Promise((resolver) => setTimeout(resolver, restante));
+    }
   }
 
   private mostrarError(error: unknown): void {
