@@ -10,7 +10,7 @@
   <div class="session-modal-backdrop">
     <section class="session-modal" role="alertdialog" aria-modal="true" aria-labelledby="session-modal-title">
       <h2 id="session-modal-title">La sesión se está por expirar</h2>
-      <p>Quedan {{ authService.segundosGraciaSesion() }} segundos. ¿Querés extenderla?</p>
+      <p>Quedan {{ authService.segundosRestantesSesion() }} segundos. ¿Querés extenderla?</p>
       <div class="session-modal-actions">
         <button type="button" class="session-modal-cancel" (click)="finalizarSesion()">Cerrar</button>
         <button type="button" class="session-modal-extend" (click)="extenderSesion()">Extender sesión</button>

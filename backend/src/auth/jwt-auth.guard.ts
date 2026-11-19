@@ -6,7 +6,7 @@ export interface AuthenticatedRequest extends Request {
   user: { sub: string; correo: string; nombreUsuario: string; perfil: string; iat?: number };
 }
 
-const TIEMPO_PARA_EXTENDER_MS = 10 * 60 * 1000 + 30 * 1000;
+const TIEMPO_PARA_EXTENDER_MS = 60 * 1000;
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {

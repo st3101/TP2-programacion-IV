@@ -4,8 +4,8 @@ import { Router } from '@angular/router';
 import { catchError, finalize, map, Observable, of, tap } from 'rxjs';
 import { API_BASE_URL } from '../api-base-url';
 
-export const DURACION_CONTADOR_SESION_MS = 10 * 60 * 1000;
-export const GRACIA_SESION_SEGUNDOS = 30;
+export const DURACION_TOKEN_SESION_MS = 60 * 1000;
+export const SEGUNDOS_AVISO_SESION = 30;
 
 // Interface que espera desde el backend al iniciar sesión o registrarse, con la informacion del usuario autenticado
 export interface AuthResponse {
@@ -40,11 +40,10 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly apiUrl = `${API_BASE_URL}/api/auth`;
   private readonly claveVencimientoSesion = 'lobby_session_expires_at';
-  private readonly claveAvisoSesion = 'lobby_session_warning_until';
   readonly segundosRestantesSesion = signal<number | null>(null);
   readonly avisoExtensionSesion = signal(false);
-  readonly segundosGraciaSesion = signal(GRACIA_SESION_SEGUNDOS);
   private relojSesion?: ReturnType<typeof setInterval>;
+  private avisoYaMostrado = false;
 
   
   constructor() {
@@ -90,6 +89,7 @@ export class AuthService {
 
   cerrarModalAvisoSesion(): void {
     this.avisoExtensionSesion.set(false);
+    this.avisoYaMostrado = true;
   }
 
   validateSession(): Observable<boolean> {
@@ -127,10 +127,10 @@ export class AuthService {
 
     let venceEn: number;
     if (nuevaSesion) {
-      venceEn = Date.now() + DURACION_CONTADOR_SESION_MS;
+      venceEn = Date.now() + DURACION_TOKEN_SESION_MS;
       localStorage.setItem(this.claveVencimientoSesion, String(venceEn));
-      localStorage.removeItem(this.claveAvisoSesion);
       this.avisoExtensionSesion.set(false);
+      this.avisoYaMostrado = false;
     } else {
       venceEn = Number(localStorage.getItem(this.claveVencimientoSesion) ?? 0);
     }
@@ -140,48 +140,33 @@ export class AuthService {
       return;
     }
 
+    if (venceEn <= Date.now()) {
+      this.limpiarRelojSesion();
+      return;
+    }
+
     const actualizar = (): void => {
-      const segundos = Math.ceil((venceEn - Date.now()) / 1000);
-      if (segundos <= 0) {
-        this.mostrarAvisoExtension();
-        return;
-      }
+      const segundos = Math.max(0, Math.ceil((venceEn - Date.now()) / 1000));
       this.segundosRestantesSesion.set(segundos);
-    };
 
-    actualizar();
-    if (!this.avisoExtensionSesion() && this.segundosRestantesSesion() !== null) {
-      this.relojSesion = setInterval(actualizar, 1000);
-    }
-  }
+      if (segundos <= SEGUNDOS_AVISO_SESION && !this.avisoYaMostrado) {
+        this.avisoYaMostrado = true;
+        this.avisoExtensionSesion.set(true);
+      }
 
-  private mostrarAvisoExtension(): void {
-    if (this.relojSesion) {
-      clearInterval(this.relojSesion);
-    }
-    this.segundosRestantesSesion.set(0);
-    this.avisoExtensionSesion.set(true);
-    let venceAviso = Number(localStorage.getItem(this.claveAvisoSesion) ?? 0);
-    if (!venceAviso) {
-      venceAviso = Date.now() + GRACIA_SESION_SEGUNDOS * 1000;
-      localStorage.setItem(this.claveAvisoSesion, String(venceAviso));
-    }
-
-    const actualizarGracia = (): void => {
-      const segundos = Math.ceil((venceAviso - Date.now()) / 1000);
-      if (segundos <= 0) {
-        this.segundosGraciaSesion.set(0);
+      if (segundos === 0) {
         if (this.relojSesion) {
           clearInterval(this.relojSesion);
           this.relojSesion = undefined;
         }
         return;
       }
-      this.segundosGraciaSesion.set(segundos);
     };
 
-    actualizarGracia();
-    this.relojSesion = setInterval(actualizarGracia, 1000);
+    actualizar();
+    if (this.segundosRestantesSesion() !== null && this.segundosRestantesSesion()! > 0) {
+      this.relojSesion = setInterval(actualizar, 1000);
+    }
   }
 
   private limpiarRelojSesion(): void {
@@ -191,10 +176,9 @@ export class AuthService {
     this.relojSesion = undefined;
     this.segundosRestantesSesion.set(null);
     this.avisoExtensionSesion.set(false);
-    this.segundosGraciaSesion.set(GRACIA_SESION_SEGUNDOS);
+    this.avisoYaMostrado = false;
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(this.claveVencimientoSesion);
-      localStorage.removeItem(this.claveAvisoSesion);
     }
   }
 }
