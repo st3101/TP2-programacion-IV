@@ -9,11 +9,10 @@
 @if (authService.avisoExtensionSesion()) {
   <div class="session-modal-backdrop">
     <section class="session-modal" role="alertdialog" aria-modal="true" aria-labelledby="session-modal-title">
-      <span class="session-modal-icon" aria-hidden="true">!</span>
       <h2 id="session-modal-title">La sesión se está por expirar</h2>
       <p>Quedan {{ authService.segundosGraciaSesion() }} segundos. ¿Querés extenderla?</p>
       <div class="session-modal-actions">
-        <button type="button" class="session-modal-cancel" (click)="finalizarSesion()">Cerrar modal</button>
+        <button type="button" class="session-modal-cancel" (click)="finalizarSesion()">Cerrar</button>
         <button type="button" class="session-modal-extend" (click)="extenderSesion()">Extender sesión</button>
       </div>
     </section>

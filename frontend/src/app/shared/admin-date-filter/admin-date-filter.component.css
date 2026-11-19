@@ -1,0 +1,7 @@
+:host { display: block; }
+.date-filter { display: flex; align-items: end; gap: 14px; margin: 28px 0; padding: 20px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; background: rgb(255 255 255 / 2%); }
+.date-filter label { display: grid; gap: 7px; color: var(--color-smoke); font-size: 12px; }
+.date-filter input { min-width: 170px; min-height: 40px; padding: 8px 10px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 7px; background: #111214; color: var(--color-mist); color-scheme: dark; cursor: pointer; font: inherit; }
+.date-filter button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 7px; background: #d99589; color: #171414; font: inherit; font-weight: 600; cursor: pointer; }
+.date-filter button:disabled { opacity: .65; cursor: wait; }
+@media (max-width: 600px) { .date-filter { align-items: stretch; flex-direction: column; } .date-filter input, .date-filter button { width: 100%; } }

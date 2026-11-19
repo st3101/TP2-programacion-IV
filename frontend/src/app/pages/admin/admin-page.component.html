@@ -1,9 +1,46 @@
 <main class="admin-shell">
-  <app-navbar currentPage="admin" [isAdmin]="true" (logoutRequested)="cerrarSesion()" />
+  <app-navbar currentPage="users" [isAdmin]="true" (logoutRequested)="cerrarSesion()" />
   <section class="admin-content">
     <p class="eyebrow">ADMINISTRACIÓN</p>
     <h1>Usuarios</h1>
     <p class="admin-description">Listado de las cuentas registradas en Lobby.</p>
+
+    <section class="create-user-card" aria-labelledby="create-user-title">
+      <div class="create-user-heading">
+        <div>
+          <p class="eyebrow">NUEVA CUENTA</p>
+          <h2 id="create-user-title">Crear usuario</h2>
+        </div>
+      </div>
+      <form class="create-user-form" (submit)="crearUsuario($event)">
+        <label>Nombre<input name="nombre" type="text" maxlength="80" autocomplete="given-name" required /></label>
+        <label>Apellido<input name="apellido" type="text" maxlength="80" autocomplete="family-name" required /></label>
+        <label>Correo<input name="correo" type="email" maxlength="254" autocomplete="email" required /></label>
+        <label>Nombre de usuario<input name="nombreUsuario" type="text" minlength="3" maxlength="30" autocomplete="username" required /></label>
+        <label>Fecha de nacimiento<input name="fechaNacimiento" type="date" required /></label>
+        <label>Descripción breve<input name="descripcion" type="text" maxlength="280" /></label>
+        <label>Contraseña<input name="password" type="password" minlength="8" maxlength="72" pattern="(?=.*\p{Lu})(?=.*\d).{8,72}" title="Mínimo 8 caracteres, una mayúscula y un número." autocomplete="new-password" required /></label>
+        <label>Repetir contraseña<input name="repetirPassword" type="password" maxlength="72" autocomplete="new-password" required /></label>
+        <label class="image-field">Imagen de perfil (opcional)<input name="imagenPerfil" type="file" accept="image/jpeg,image/png,image/webp" /></label>
+
+        <fieldset class="profile-choice">
+          <legend>Perfil del usuario</legend>
+          <label><input type="radio" name="perfil" value="usuario" checked /> Usuario</label>
+          <label><input type="radio" name="perfil" value="administrador" /> Administrador</label>
+        </fieldset>
+
+        <button class="create-user-button" type="submit" [disabled]="creandoUsuario()">
+          {{ creandoUsuario() ? 'Creando...' : 'Crear usuario' }}
+        </button>
+        @if (mensajeCreacion()) {
+          <p class="create-user-message" role="status">{{ mensajeCreacion() }}</p>
+        }
+      </form>
+    </section>
+
+    @if (mensajeEstado()) {
+      <p class="user-status-message" role="status">{{ mensajeEstado() }}</p>
+    }
 
     @if (cargando()) {
       <p class="admin-status">Cargando usuarios...</p>
@@ -14,7 +51,7 @@
     } @else {
       <div class="users-table-wrap">
         <table>
-          <thead><tr><th>Usuario</th><th>Correo</th><th>Perfil</th><th>Estado</th><th>Registrado</th></tr></thead>
+          <thead><tr><th>Usuario</th><th>Correo</th><th>Perfil</th><th>Estado</th><th>Registrado</th><th>Acción</th></tr></thead>
           <tbody>
             @for (usuario of usuarios(); track usuario.id) {
               <tr>
@@ -23,6 +60,23 @@
                 <td>{{ usuario.perfil }}</td>
                 <td>{{ usuario.habilitado ? 'Habilitado' : 'Deshabilitado' }}</td>
                 <td>{{ usuario.creadoEn | date: 'dd/MM/yyyy' }}</td>
+                <td>
+                  <button
+                    class="user-status-button"
+                    [class.user-status-button--enable]="!usuario.habilitado"
+                    type="button"
+                    [disabled]="usuarioActualizando() !== ''"
+                    (click)="cambiarEstado(usuario)"
+                  >
+                    @if (usuarioActualizando() === usuario.id) {
+                      Actualizando...
+                    } @else if (usuario.habilitado) {
+                      Deshabilitar
+                    } @else {
+                      Habilitar
+                    }
+                  </button>
+                </td>
               </tr>
             }
           </tbody>

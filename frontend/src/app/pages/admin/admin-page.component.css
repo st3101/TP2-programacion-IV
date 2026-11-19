@@ -4,6 +4,23 @@
 .eyebrow { color: #d99589; font: 10px var(--font-mono); letter-spacing: .14em; }
 h1 { margin: 8px 0; color: var(--color-mist); font-size: clamp(32px, 5vw, 48px); font-weight: 500; }
 .admin-description, .admin-status { color: var(--color-ash); font-size: 13px; }
+.create-user-card { margin-top: 28px; padding: 24px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; background: rgb(255 255 255 / 2%); }
+.create-user-heading h2 { margin: 5px 0 0; color: var(--color-mist); font-size: 20px; font-weight: 500; }
+.create-user-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+.create-user-form > label { display: grid; gap: 7px; color: var(--color-smoke); font-size: 12px; }
+.create-user-form input:not([type="radio"]) { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 7px; background: #111214; color: var(--color-mist); font: inherit; }
+.create-user-form input[type="file"] { padding: 8px; }
+.image-field, .profile-choice, .create-user-button, .create-user-message { grid-column: 1 / -1; }
+.profile-choice { display: flex; gap: 24px; margin: 0; padding: 14px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 7px; color: var(--color-smoke); }
+.profile-choice legend { padding: 0 6px; color: var(--color-smoke); font-size: 12px; }
+.profile-choice label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.create-user-button { justify-self: start; min-height: 42px; padding: 0 20px; border: 0; border-radius: 7px; background: #d99589; color: #171414; font: inherit; font-weight: 600; cursor: pointer; }
+.create-user-button:disabled { opacity: .65; cursor: wait; }
+.create-user-message { margin: 0; color: var(--color-smoke); font-size: 13px; }
+.user-status-message { margin-top: 18px; color: var(--color-smoke); font-size: 13px; }
+.user-status-button { min-height: 32px; padding: 0 11px; border: 1px solid rgb(255 255 255 / 18%); border-radius: 6px; background: transparent; color: var(--color-mist); font: inherit; cursor: pointer; }
+.user-status-button--enable { border-color: rgb(115 194 151 / 45%); color: #8fd4aa; }
+.user-status-button:disabled { opacity: .55; cursor: wait; }
 .users-table-wrap { margin-top: 28px; overflow-x: auto; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; background: rgb(255 255 255 / 2%); }
 table { width: 100%; border-collapse: collapse; text-align: left; color: var(--color-ash); font-size: 12px; }
 th, td { padding: 14px 16px; border-bottom: 1px solid rgb(255 255 255 / 8%); white-space: nowrap; }
@@ -13,4 +30,4 @@ td strong, td small { display: block; }
 td strong { color: var(--color-mist); font-weight: 500; }
 td small { margin-top: 4px; color: var(--color-smoke); }
 .admin-error { color: #ff9999; }
-@media (max-width: 600px) { .admin-shell { padding: 12px; } .admin-content { margin-top: 38px; } }
+@media (max-width: 600px) { .admin-shell { padding: 12px; } .admin-content { margin-top: 38px; } .create-user-card { padding: 16px; } .create-user-form { grid-template-columns: 1fr; } .profile-choice { flex-wrap: wrap; } }

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { hash, compare } from 'bcryptjs';
@@ -17,6 +17,35 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto, image?: { buffer: Buffer; mimetype: string }) {
+    const usuario = await this.crearUsuario(dto, image, PerfilUsuario.USUARIO);
+    return this.createSession(usuario);
+  }
+
+  async crearUsuarioAdministrador(
+    dto: RegisterDto,
+    image: { buffer: Buffer; mimetype: string } | undefined,
+    perfil: PerfilUsuario,
+  ) {
+    const usuario = await this.crearUsuario(dto, image, perfil);
+    return {
+      id: usuario._id.toString(),
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      correo: usuario.correo,
+      nombreUsuario: usuario.nombreUsuario,
+      fechaNacimiento: usuario.fechaNacimiento,
+      descripcion: usuario.descripcion,
+      imagenPerfilUrl: usuario.imagenPerfilUrl,
+      perfil: usuario.perfil,
+      habilitado: usuario.habilitado,
+    };
+  }
+
+  private async crearUsuario(
+    dto: RegisterDto,
+    image: { buffer: Buffer; mimetype: string } | undefined,
+    perfil: PerfilUsuario,
+  ): Promise<HydratedDocument<Usuario>> {
     if (dto.password !== dto.repetirPassword) {
       throw new BadRequestException('La contraseña y su repetición no coinciden.');
     }
@@ -42,20 +71,19 @@ export class AuthService {
         imagenPerfilUrl = uploadedImage.url;
       }
 
-      const usuario = await this.usuarioModel.create({
+      return await this.usuarioModel.create({
         nombre: dto.nombre.trim(),
         apellido: dto.apellido.trim(),
         correo,
         nombreUsuario,
         passwordHash: await hash(dto.password, 12),
         fechaNacimiento: new Date(dto.fechaNacimiento),
-        perfil: PerfilUsuario.USUARIO,
+        perfil,
         descripcion: dto.descripcion?.trim() ?? '',
         imagenPerfilUrl,
         imagenPerfilPublicId: uploadedImage?.publicId ?? '',
       });
 
-      return this.createSession(usuario);
     } catch (error) {
       if (uploadedImage) await this.cloudinaryService.deleteImage(uploadedImage.publicId).catch(() => undefined);
       if (this.isDuplicateKeyError(error)) {
@@ -78,8 +106,12 @@ export class AuthService {
       .findOne({ $or: [{ correo: identificador }, { nombreUsuario: identificador }] })
       .select('+passwordHash');
 
-    if (!usuario || !usuario.habilitado || !(await compare(dto.password, usuario.passwordHash))) {
+    if (!usuario || !(await compare(dto.password, usuario.passwordHash))) {
       throw new UnauthorizedException('Correo o contraseña incorrectos.');
+    }
+
+    if (!usuario.habilitado) {
+      throw new ForbiddenException('Tu cuenta está deshabilitada. Contactá a un administrador.');
     }
 
     return this.createSession(usuario);

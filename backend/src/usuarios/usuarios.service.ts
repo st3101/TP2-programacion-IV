@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { Comentario } from '../database/schemas/comentario.schema';
@@ -33,6 +33,176 @@ export class UsuariosService {
       habilitado: usuario.habilitado,
       creadoEn: usuario.createdAt,
     }));
+  }
+
+  async estadisticasDePublicaciones(desde: string, hasta: string) {
+    const fechaInicio = new Date(desde);
+    const fechaFin = new Date(hasta);
+
+    if (Number.isNaN(fechaInicio.getTime()) || Number.isNaN(fechaFin.getTime())) {
+      throw new BadRequestException('Las fechas elegidas no son válidas.');
+    }
+
+    if (fechaInicio > fechaFin) {
+      throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin.');
+    }
+
+    fechaFin.setUTCDate(fechaFin.getUTCDate() + 1);
+
+    const conteos = await this.publicacionModel.aggregate([
+      { $match: { createdAt: { $gte: fechaInicio, $lt: fechaFin } } },
+      { $group: { _id: '$autorId', cantidad: { $sum: 1 } } },
+    ]);
+    const cantidades = new Map<string, number>();
+
+    for (const conteo of conteos) {
+      cantidades.set(conteo._id.toString(), conteo.cantidad);
+    }
+
+    const usuarios = await this.usuarioModel
+      .find()
+      .select('nombre apellido nombreUsuario')
+      .lean();
+
+    const resultados = usuarios.map((usuario) => ({
+      id: usuario._id.toString(),
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      nombreUsuario: usuario.nombreUsuario,
+      cantidad: cantidades.get(usuario._id.toString()) ?? 0,
+    }));
+
+    resultados.sort((primero, segundo) => {
+      if (primero.cantidad !== segundo.cantidad) {
+        return segundo.cantidad - primero.cantidad;
+      }
+      return primero.nombreUsuario.localeCompare(segundo.nombreUsuario);
+    });
+
+    return {
+      desde,
+      hasta,
+      totalPublicaciones: conteos.reduce((total, conteo) => total + conteo.cantidad, 0),
+      usuarios: resultados,
+    };
+  }
+
+  async estadisticasDeComentarios(desde: string, hasta: string) {
+    const fechaInicio = new Date(desde);
+    const fechaFin = new Date(hasta);
+
+    if (Number.isNaN(fechaInicio.getTime()) || Number.isNaN(fechaFin.getTime())) {
+      throw new BadRequestException('Las fechas elegidas no son válidas.');
+    }
+
+    if (fechaInicio > fechaFin) {
+      throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin.');
+    }
+
+    fechaFin.setUTCDate(fechaFin.getUTCDate() + 1);
+    const comentarios = await this.comentarioModel.aggregate<{ _id: string; cantidad: number }>([
+      { $match: { createdAt: { $gte: fechaInicio, $lt: fechaFin } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$createdAt',
+              timezone: 'UTC',
+            },
+          },
+          cantidad: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    return {
+      desde,
+      hasta,
+      totalComentarios: comentarios.reduce((total, dia) => total + dia.cantidad, 0),
+      comentariosPorDia: comentarios.map((dia) => ({ fecha: dia._id, cantidad: dia.cantidad })),
+    };
+  }
+
+  async estadisticasDeComentariosPorPublicacion(desde: string, hasta: string) {
+    const fechaInicio = new Date(desde);
+    const fechaFin = new Date(hasta);
+
+    if (Number.isNaN(fechaInicio.getTime()) || Number.isNaN(fechaFin.getTime())) {
+      throw new BadRequestException('Las fechas elegidas no son válidas.');
+    }
+
+    if (fechaInicio > fechaFin) {
+      throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin.');
+    }
+
+    fechaFin.setUTCDate(fechaFin.getUTCDate() + 1);
+    const conteos = await this.comentarioModel.aggregate<{ _id: Types.ObjectId; cantidad: number }>([
+      { $match: { createdAt: { $gte: fechaInicio, $lt: fechaFin } } },
+      { $group: { _id: '$publicacionId', cantidad: { $sum: 1 } } },
+    ]);
+    const cantidades = new Map<string, number>();
+
+    for (const conteo of conteos) {
+      cantidades.set(conteo._id.toString(), conteo.cantidad);
+    }
+
+    const publicaciones = await this.publicacionModel
+      .find()
+      .select('titulo')
+      .lean();
+
+    const resultados = publicaciones.map((publicacion) => ({
+      id: publicacion._id.toString(),
+      titulo: publicacion.titulo,
+      cantidad: cantidades.get(publicacion._id.toString()) ?? 0,
+    }));
+
+    resultados.sort((primera, segunda) => {
+      if (primera.cantidad !== segunda.cantidad) {
+        return segunda.cantidad - primera.cantidad;
+      }
+      return primera.titulo.localeCompare(segunda.titulo);
+    });
+
+    return {
+      desde,
+      hasta,
+      totalComentarios: conteos.reduce((total, conteo) => total + conteo.cantidad, 0),
+      publicaciones: resultados,
+    };
+  }
+
+  async cambiarHabilitacion(usuarioId: string, habilitado: boolean, administradorId: string) {
+    if (!Types.ObjectId.isValid(usuarioId)) {
+      throw new NotFoundException('No se encontró el usuario.');
+    }
+
+    if (!habilitado && usuarioId === administradorId) {
+      throw new BadRequestException('No podés deshabilitar tu propia cuenta.');
+    }
+
+    const usuario = await this.usuarioModel.findByIdAndUpdate(
+      usuarioId,
+      { $set: { habilitado } },
+      { new: true },
+    );
+
+    if (!usuario) {
+      throw new NotFoundException('No se encontró el usuario.');
+    }
+
+    return {
+      id: usuario._id.toString(),
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      correo: usuario.correo,
+      nombreUsuario: usuario.nombreUsuario,
+      perfil: usuario.perfil,
+      habilitado: usuario.habilitado,
+      creadoEn: usuario.createdAt,
+    };
   }
 
   async getMyProfile(usuarioId: string) {
