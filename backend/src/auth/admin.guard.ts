@@ -3,6 +3,8 @@ import type { AuthenticatedRequest } from './jwt-auth.guard';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
+
+  //verifica si el usuario tiene perfil de administrador, si no lo tiene lanza un ForbiddenException
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     if (request.user.perfil !== 'administrador') {

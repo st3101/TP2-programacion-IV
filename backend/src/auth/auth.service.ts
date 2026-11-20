@@ -100,13 +100,14 @@ export class AuthService {
     }
   }
 
+  // Busca al usuario y comprueba su contraseña antes de crear la sesión.
   async login(dto: LoginDto) {
     const identificador = dto.identificador.trim().toLowerCase();
-    const usuario = await this.usuarioModel
+    const usuario = await this.usuarioModel     //Busca el usuario en la base de datos por correo o nombre de usuario y selecciona el campo passwordHash
       .findOne({ $or: [{ correo: identificador }, { nombreUsuario: identificador }] })
       .select('+passwordHash');
 
-    if (!usuario || !(await compare(dto.password, usuario.passwordHash))) {
+    if (!usuario || !(await compare(dto.password, usuario.passwordHash))) { //Compara contraseña ingresada con la contraseña encriptada en la base de datos
       throw new UnauthorizedException('Correo o contraseña incorrectos.');
     }
 
@@ -145,6 +146,7 @@ export class AuthService {
   }
 
   private createSession(usuario: HydratedDocument<Usuario>) {
+    //Crea el payload del token JWT con la información del usuario
     const payload = {
       sub: usuario._id.toString(),
       correo: usuario.correo,
@@ -152,6 +154,7 @@ export class AuthService {
       perfil: usuario.perfil,
     };
 
+    // devuelve el token JWT y la información del usuario en un objeto
     return {
       accessToken: this.jwtService.sign(payload),
       usuario: {

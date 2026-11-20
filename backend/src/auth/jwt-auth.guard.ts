@@ -6,7 +6,7 @@ export interface AuthenticatedRequest extends Request {
   user: { sub: string; correo: string; nombreUsuario: string; perfil: string; iat?: number };
 }
 
-const TIEMPO_PARA_EXTENDER_MS = 60 * 1000;
+const TIEMPO_PARA_EXTENDER_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -16,15 +16,15 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const authorization = request.headers.authorization;
     const [scheme, bearerToken] = authorization?.split(' ') ?? [];
-    const token = request.cookies?.access_token ?? (scheme === 'Bearer' ? bearerToken : undefined);
+    const token = request.cookies?.access_token ?? (scheme === 'Bearer' ? bearerToken : undefined); //Obtiene el token JWT de la cookie o del encabezado de autorización
 
     if (!token) {
       throw new UnauthorizedException('Falta el token de acceso.');
     }
 
     try {
-      request.user = await this.jwtService.verifyAsync(token);
-      if (request.path.endsWith('/auth/refresh')) {
+      request.user = await this.jwtService.verifyAsync(token); //Verifica el token JWT y obtiene la información del usuario
+      if (request.path.endsWith('/auth/refresh')) { // Si es la ruta de refresh, valida que el token no haya expirado hace más de 3 minutos
         const emitidoEn = (request.user.iat ?? 0) * 1000;
         if (!emitidoEn || Date.now() - emitidoEn > TIEMPO_PARA_EXTENDER_MS) {
           throw new UnauthorizedException('El tiempo para extender la sesión terminó.');

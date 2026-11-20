@@ -33,6 +33,7 @@ export class UsuariosController {
     return this.usuariosService.updateMyProfile(request.user.sub, updateProfileDto, image);
   }
 
+  // Sólo los administradores pueden listar todos los usuarios y ver estadísticas
   @Get()
   @UseGuards(AdminGuard)
   listarUsuarios() {
