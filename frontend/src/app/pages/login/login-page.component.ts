@@ -34,6 +34,7 @@ export class LoginPageComponent {
     this.passwordVisible.update((visible) => !visible);
   }
 
+  
   protected onSubmit(event: Event): void {
     event.preventDefault();
 
@@ -44,7 +45,7 @@ export class LoginPageComponent {
       this.cargandoSesion.set(true);
 
       try {
-        await firstValueFrom(this.authService.login(identificador, password));
+        await firstValueFrom(this.authService.login(identificador, password)); //Envia los datos al backend y espera la respuesta
         await this.esperarSpinner(inicio);
         await this.router.navigateByUrl('/feed');
       } catch (error) {

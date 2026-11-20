@@ -26,6 +26,7 @@ export class AuthController {
     return this.createSessionCookie(this.authService.register(registerDto, image), response);
   }
 
+  // Llega los datos desade el formulario, se lo entrega al login y si es correcto, crea la cookie de sesión y devuelve el usuario
   @Post('login')
   login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) response: Response) {
     return this.createSessionCookie(this.authService.login(loginDto), response);
@@ -58,8 +59,8 @@ export class AuthController {
     response?: Response,
   ) {
     const session = await sessionPromise;
-    response?.cookie('access_token', session.accessToken, this.cookieOptions());
-    return { usuario: session.usuario };
+    response?.cookie('access_token', session.accessToken, this.cookieOptions()); //Crea la cookie de sesión, configurada con el token JWT 
+    return { usuario: session.usuario }; //retorna la información del usuario autenticado
   }
 
   // Configuración de las cookies de sesión
@@ -70,8 +71,8 @@ export class AuthController {
       sameSite: 'lax' as const,
       path: '/',
 
-      // En segundos 
-      maxAge: 360 * 1000,
+      // 10 minutos
+      maxAge: 10 * 60 * 1000,
     };
   }
 }

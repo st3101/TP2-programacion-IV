@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, finalize, map, Observable, of, tap } from 'rxjs';
 import { API_BASE_URL } from '../api-base-url';
 
-export const DURACION_TOKEN_SESION_MS = 60 * 1000;
+export const DURACION_TOKEN_SESION_MS = 10 * 60 * 1000;
 export const SEGUNDOS_AVISO_SESION = 30;
 
 // Interface que espera desde el backend al iniciar sesión o registrarse, con la informacion del usuario autenticado
@@ -50,7 +50,7 @@ export class AuthService {
     this.iniciarRelojSesion();
   }
 
-  // Peticion de login al backend
+  // Peticion de login al backend 
   login(identificador: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { identificador, password }).pipe(
       tap(() => this.iniciarRelojSesion(true)),
@@ -144,7 +144,7 @@ export class AuthService {
       this.limpiarRelojSesion();
       return;
     }
-
+   // Se encarga de actualizar el tiempo restante de la sesión y mostrar el aviso si es necesario
     const actualizar = (): void => {
       const segundos = Math.max(0, Math.ceil((venceEn - Date.now()) / 1000));
       this.segundosRestantesSesion.set(segundos);
